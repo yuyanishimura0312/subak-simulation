@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スバック灌漑シミュレーション — 水と儀礼の自己組織化</title>
+<style>
+:root {
+  --miratuku-golden-orange: #F0A671;
+  --miratuku-light-beige: #F2C792;
+  --miratuku-warm-beige: #F1C189;
+  --miratuku-camel: #CEA26F;
+  --miratuku-pale-peach: #F8CDAC;
+  --miratuku-sand-gold: #F0BE83;
+  --miratuku-soft-salmon: #EFC4A4;
+  --miratuku-rose-peach: #F7BEA2;
+  --miratuku-terracotta: #DC8766;
+  --miratuku-amber-brown: #B07256;
+  --miratuku-warm-brown: #966D5E;
+  --miratuku-deep-brown: #7A4033;
+  --accent: #783c28;
+  --bg: #faf8f5;
+  --text: #1a1a1a;
+  --text-secondary: #6b5d53;
+  --border: #e8ddd4;
+  --card-bg: #fff;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* --- Header --- */
+.header {
+  margin-bottom: 48px;
+  border-bottom: 2px solid var(--miratuku-camel);
+  padding-bottom: 32px;
+}
+.header h1 {
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.header .subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.header .reference {
+  font-size: 12px;
+  color: var(--miratuku-warm-brown);
+}
+
+/* --- Section --- */
+.section {
+  margin-bottom: 48px;
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 3px solid var(--miratuku-terracotta);
+}
+.section-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* --- Prose --- */
+.prose {
+  font-size: 15px;
+  line-height: 2;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.prose strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* --- Cards --- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+/* --- Stats --- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* --- Controls --- */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.controls button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-family);
+  transition: background 0.2s;
+}
+.controls button:hover { background: var(--miratuku-deep-brown); }
+.controls button.active { background: var(--miratuku-terracotta); }
+#slider {
+  flex: 1;
+  min-width: 180px;
+  accent-color: var(--accent);
+  height: 6px;
+}
+.step-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 80px;
+  text-align: right;
+}
+
+/* --- Grids --- */
+.grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+@media (max-width: 768px) {
+  .grid-row { grid-template-columns: 1fr; }
+}
+.grid-panel h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.water-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--miratuku-warm-brown);
+  letter-spacing: 2px;
+  margin: 4px 0;
+}
+.grid {
+  display: grid;
+  gap: 2px;
+  aspect-ratio: 1;
+}
+.cell {
+  border-radius: 3px;
+  position: relative;
+  transition: background-color 0.3s ease;
+  cursor: crosshair;
+}
+.cell:hover {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  z-index: 1;
+}
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+.cell:hover .tooltip { display: block; }
+.phase-legend {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.phase-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 12px;
+}
+.phase-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+.phase-label-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* --- Ritual Calendar --- */
+.calendar-ring {
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+  position: relative;
+}
+.calendar-ring svg { width: 100%; height: 100%; }
+.calendar-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.calendar-center-text .year-num {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--accent);
+}
+.calendar-center-text .year-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.calendar-legend-item {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- Charts --- */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+@media (max-width: 768px) {
+  .charts-row { grid-template-columns: 1fr; }
+}
+.chart-panel h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+canvas {
+  width: 100%;
+  height: 220px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chart-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* --- Tradeoff Diagram --- */
+.tradeoff-diagram {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 24px 0;
+  flex-wrap: wrap;
+}
+.tradeoff-side {
+  text-align: center;
+  max-width: 260px;
+}
+.tradeoff-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+.tradeoff-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.tradeoff-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.tradeoff-arrow {
+  display: flex;
+  align-items: center;
+  font-size: 28px;
+  color: var(--miratuku-camel);
+}
+
+/* --- Insight Box --- */
+.insight {
+  background: linear-gradient(135deg, #fdf6f0, #faf8f5);
+  border: 1px solid var(--miratuku-pale-peach);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.insight-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--miratuku-terracotta);
+  margin-bottom: 8px;
+}
+
+/* --- Temple Hierarchy --- */
+.temple-hierarchy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+}
+.temple-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+.temple-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.temple-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  position: relative;
+}
+.temple-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 140px;
+}
+.temple-connector {
+  width: 2px;
+  height: 12px;
+  background: var(--border);
+}
+
+/* --- Decision Rule --- */
+.decision-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+.decision-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  text-align: center;
+  max-width: 180px;
+}
+.decision-arrow {
+  color: var(--miratuku-camel);
+  font-size: 20px;
+}
+
+/* --- Footer --- */
+.footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--miratuku-warm-brown);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <h1>スバック灌漑シミュレーション</h1>
+  <p class="subtitle">水と儀礼の自己組織化 — バリ島水寺院ネットワークの創発モデル</p>
+  <p class="reference">Lansing, J.S. & Kremer, J.N. (1993) "Emergent Properties of Balinese Water Temple Networks" American Anthropologist 95(1):97-114</p>
+</div>
+
+
+<!-- ===== 1. 導入 ===== -->
+<div class="section">
+  <h2 class="section-title">スバックとは何か</h2>
+  <p class="prose">
+    スバック（Subak）は、バリ島の水田稲作を支える伝統的な灌漑共同体です。1,000年以上の歴史を持ち、2012年にはUNESCO世界文化遺産に登録されました。バリ島には約1,200のスバックがあり、それぞれが数十ヘクタールの棚田を管理しています。スバックの最も注目すべき特徴は、中央集権的な管理者がいないにもかかわらず、流域全体で高度に調整された水の配分と作付けスケジュールを実現していることです。
+  </p>
+  <p class="prose">
+    この調整を可能にしているのが、<strong>水寺院（Pura Ulun Swi / Pura Ulun Danu）</strong>のネットワークです。水寺院は宗教施設であると同時に、灌漑の意思決定を行う場でもあります。各スバックの代表者は水寺院に集まり、儀礼を通じて作付け時期を決定します。つまり、宗教的なカレンダーシステムが、実質的に灌漑の最適化アルゴリズムとして機能しているのです。
+  </p>
+</div>
+
+
+<!-- ===== 2. トレードオフの構造 ===== -->
+<div class="section">
+  <h2 class="section-title">二つの力のトレードオフ</h2>
+  <p class="prose">
+    スバックの農家は、作付け時期を決めるとき、二つの相反する圧力に直面します。このトレードオフこそが、スバックシステムの核心であり、シミュレーションの中心的なメカニズムです。
+  </p>
+
+  <div class="card">
+    <div class="tradeoff-diagram">
+      <div class="tradeoff-side">
+        <div class="tradeoff-title">害虫の圧力</div>
+        <div style="font-size:13px; color:var(--miratuku-terracotta); margin-bottom:8px;">同期が有利</div>
+        <p class="tradeoff-desc">
+          近隣のスバックが同時に植え付け・収穫すると、広域で一斉に休耕期間が生まれます。害虫（特にウンカ）は食料を失い、個体数が激減します。しかし同期を崩すと、害虫は常にどこかの水田で食料を見つけられるため、被害が最大50%に達します。
+        </p>
+      </div>
+      <div class="tradeoff-arrow">&#x21C6;</div>
+      <div class="tradeoff-side">
+        <div class="tradeoff-title">水の圧力</div>
+        <div style="font-size:13px; color:var(--miratuku-amber-brown); margin-bottom:8px;">分散が有利</div>
+        <p class="tradeoff-desc">
+          全スバックが同時に植え付けると、ピーク時の水需要が一点に集中し、特に下流のスバックは深刻な水不足に陥ります。作付けを時間的に分散させれば、水を均等に分け合うことができます。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-title">この対立が意味すること</div>
+    <p class="prose" style="margin-bottom:0;">
+      完全な同期も完全な分散も最適ではありません。最良の解は「適度なクラスター」 — 近隣同士は同期しつつ、流域全体では時間差をつけるという中間的なパターンです。驚くべきことに、水寺院の儀礼カレンダーはまさにこの最適パターンを実現しています。
+    </p>
+  </div>
+</div>
+
+
+<!-- ===== 3. 儀礼カレンダー ===== -->
+<div class="section">
+  <h2 class="section-title">儀礼カレンダーと水寺院の階層</h2>
+  <p class="prose">
+    バリの水田農業は、<strong>210日周期のパウコン暦</strong>と<strong>太陰太陽暦のサカ暦</strong>の二つの暦によって律動しています。パウコン暦は、1週から10週まで異なる周期を持つ曜日が組み合わさる複合的なカレンダーで、特定の日の組み合わせが農作業の吉日を決定します。
+  </p>
+  <p class="prose">
+    水寺院の祭礼は年間を通じて定められた日程で行われ、それが作付け・灌漑のスケジュールと直接対応しています。たとえば、最上位のバトゥール湖寺院の祭礼が全体の農暦の基準を定め、その下位の水寺院がそれぞれの担当区域で具体的な日程を調整します。
+  </p>
+
+  <div class="card">
+    <p class="section-subtitle">水寺院の三層構造</p>
+    <div class="temple-hierarchy">
+      <div class="temple-level">
+        <div class="temple-dot" style="background: var(--miratuku-terracotta);"></div>
+        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-terracotta), var(--miratuku-rose-peach)); width: 100%;"></div>
+        <div class="temple-label"><strong>バトゥール湖寺院</strong><br>流域全体の暦基準</div>
+      </div>
+      <div class="temple-connector"></div>
+      <div class="temple-level">
+        <div class="temple-dot" style="background: var(--miratuku-camel);"></div>
+        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-camel), var(--miratuku-light-beige)); width: 75%;"></div>
+        <div class="temple-label"><strong>マスクティ寺院</strong><br>河川単位の調整（数十スバック）</div>
+      </div>
+      <div class="temple-connector"></div>
+      <div class="temple-level">
+        <div class="temple-dot" style="background: var(--miratuku-sand-gold);"></div>
+        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-sand-gold), var(--miratuku-pale-peach)); width: 50%;"></div>
+        <div class="temple-label"><strong>ウルン・スイ寺院</strong><br>個別スバックの儀礼暦管理</div>
+      </div>
+    </div>
+    <p class="prose" style="font-size:13px; color:var(--text-secondary); margin-top:12px; margin-bottom:0;">
+      この階層構造が、グローバルな制約（水の総量）とローカルな最適化（害虫対策）を同時に達成する仕組みを提供しています。上位の寺院が「おおまかな時間帯」を定め、下位の寺院が「具体的な日取り」を近隣と調整するという入れ子型の意思決定です。
+    </p>
+  </div>
+</div>
+
+
+<!-- ===== 4. シミュレーション ===== -->
+<div class="section">
+  <h2 class="section-title">シミュレーション</h2>
+  <p class="prose">
+    Lansing & Kremer（1993）のモデルを現代的に再実装しました。12 x 12 = 144のスバックが格子状に配置され、水は上（山側）から下（海側）へ流れます。各スバックは年に1度、6つの作付け時期（約2ヶ月ごと）から一つを選びます。意思決定のルールは驚くほど単純です。
+  </p>
+
+  <div class="card">
+    <p class="section-subtitle">意思決定ルール</p>
+    <div class="decision-flow">
+      <div class="decision-box">
+        隣接する4つの<br>スバックの収量を<br>観察する
+      </div>
+      <div class="decision-arrow">&#x2192;</div>
+      <div class="decision-box">
+        最も収量が<br>高い隣人の<br>作付け時期を<br>真似る
+      </div>
+      <div class="decision-arrow">&#x2192;</div>
+      <div class="decision-box">
+        5%の確率で<br>ランダムに<br>新しい時期を<br>試す（探索）
+      </div>
+    </div>
+    <p class="prose" style="font-size:13px; color:var(--text-secondary); margin-bottom:0;">
+      収量は「害虫被害」と「水ストレス」の両方を考慮して計算されます。害虫被害は近隣との同期度で決まり、水ストレスは上流の水需要と自分の位置（下流ほど不利）で決まります。この二つの損失を最小化するバランス点を、各スバックが局所的な情報だけで探索します。
+    </p>
+  </div>
+</div>
+
+
+<!-- ===== Stats ===== -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value" id="stat-yield">--</div>
+    <div class="stat-label">平均収量（t/ha）</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="stat-pest">--</div>
+    <div class="stat-label">害虫被害率</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="stat-water">--</div>
+    <div class="stat-label">水ストレス</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="stat-sync">--</div>
+    <div class="stat-label">同期度</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="stat-efficiency">--</div>
+    <div class="stat-label">収量効率</div>
+  </div>
+</div>
+
+<!-- ===== Controls ===== -->
+<div class="controls">
+  <button id="btn-play" onclick="togglePlay()">再生</button>
+  <button onclick="resetSim()">リセット</button>
+  <input type="range" id="slider" min="0" max="49" value="0" oninput="goToStep(+this.value)">
+  <span class="step-label" id="step-label">第0年</span>
+</div>
+
+
+<!-- ===== Grid Views ===== -->
+<div class="grid-row">
+  <div class="grid-panel">
+    <h3>作付けフェーズ（稲のライフサイクル）</h3>
+    <div class="water-label">&#x25B2; 上流（水源・山側）</div>
+    <div class="grid" id="phase-grid" style="grid-template-columns: repeat(12, 1fr);"></div>
+    <div class="water-label">&#x25BC; 下流（海側）</div>
+    <div class="phase-legend" id="phase-legend"></div>
+  </div>
+  <div class="grid-panel">
+    <h3>収量マップ（t/ha）</h3>
+    <div class="water-label">&#x25B2; 上流</div>
+    <div class="grid" id="yield-grid" style="grid-template-columns: repeat(12, 1fr);"></div>
+    <div class="water-label">&#x25BC; 下流</div>
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--text-secondary);">
+      <span>低収量</span>
+      <div style="display:flex; gap:2px;">
+        <div style="width:14px;height:14px;border-radius:3px;background:#B07256;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#CEA26F;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#F0BE83;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#F2C792;"></div>
+        <div style="width:14px;height:14px;border-radius:3px;background:#F8CDAC;"></div>
+      </div>
+      <span>高収量</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== Ritual Calendar Ring ===== -->
+<div class="section">
+  <h2 class="section-title">儀礼カレンダーと作付け分布</h2>
+  <p class="prose">
+    下の円環図は、6つの作付けフェーズに何割のスバックが属しているかを示しています。バリ島の稲作は約12ヶ月周期で、2ヶ月ごとの6フェーズに分かれます。初期のランダムな状態からどのようにフェーズが集約されていくかを観察できます。円の外周に示しているのは、各フェーズに対応するバリ暦上の時期と主要な水寺院儀礼です。
+  </p>
+
+  <div class="card" style="text-align:center;">
+    <div class="calendar-ring">
+      <svg id="calendar-svg" viewBox="0 0 320 320"></svg>
+      <div class="calendar-center-text">
+        <div class="year-num" id="cal-year">0</div>
+        <div class="year-label">年目</div>
+      </div>
+    </div>
+    <div class="calendar-legend" id="cal-legend"></div>
+  </div>
+</div>
+
+
+<!-- ===== Charts ===== -->
+<div class="charts-row">
+  <div class="chart-panel">
+    <h3>収量の推移</h3>
+    <canvas id="yield-chart"></canvas>
+    <div class="chart-legend">
+      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--accent);"></div>平均</div>
+      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-pale-peach);"></div>最小/最大</div>
+    </div>
+  </div>
+  <div class="chart-panel">
+    <h3>損失要因の推移</h3>
+    <canvas id="loss-chart"></canvas>
+    <div class="chart-legend">
+      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-terracotta);"></div>害虫被害</div>
+      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-camel);"></div>水ストレス</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== 5. 読み解き ===== -->
+<div class="section">
+  <h2 class="section-title">シミュレーションの読み解き</h2>
+
+  <div class="card">
+    <p class="section-subtitle">初期状態（第0年）</p>
+    <p class="prose" style="margin-bottom:0;">
+      各スバックはランダムに作付け時期を選んでいます。作付けフェーズのグリッドはモザイク状で、隣り合うスバックの同期がほとんどありません。そのため害虫被害が高く（20-25%程度）、一方で水はある程度分散されています。全体の収量効率は80%台にとどまります。
+    </p>
+  </div>
+
+  <div class="card">
+    <p class="section-subtitle">自己組織化の過程（第5-15年）</p>
+    <p class="prose" style="margin-bottom:0;">
+      「最も収量の高い隣人を真似る」というルールにより、成功した作付けパターンが周囲に伝播し始めます。同じフェーズのスバックが空間的にまとまり、<strong>クラスター</strong>が形成されます。この過程は、水寺院で行われる合議によって隣接するスバックが互いの戦略を学び合う現実のプロセスに対応しています。害虫被害が急速に低下し、収量が上昇します。
+    </p>
+  </div>
+
+  <div class="card">
+    <p class="section-subtitle">収束状態（第20年以降）</p>
+    <p class="prose" style="margin-bottom:0;">
+      システムは準安定状態に収束します。完全な同期には至らず、いくつかの大きなクラスターに分かれた「パッチワーク型」のパターンが形成されます。これは水の制約のためで、特に下流のスバックは上流とは異なるフェーズを選ぶことで水ストレスを避けます。このパターンは、実際のバリ島で観察される水寺院の管轄区域ごとの作付けパターンと構造的に一致します。5%のランダム探索がシステムの硬直化を防ぎ、環境変化への適応力を維持しています。
+    </p>
+  </div>
+</div>
+
+
+<!-- ===== 6. 現代的含意 ===== -->
+<div class="section">
+  <h2 class="section-title">なぜ今このモデルが重要なのか</h2>
+  <p class="prose">
+    1960-70年代、インドネシア政府は「緑の革命」政策の下、水寺院の儀礼カレンダーを無視して年3回の稲作を推奨しました。高収量品種と化学肥料を導入し、伝統的な作付けスケジュールの放棄を農家に促したのです。結果は壊滅的でした。害虫が大発生し、1970年代後半にはバリ島の稲作は危機的状況に陥りました。
+  </p>
+  <p class="prose">
+    Lansingらのシミュレーションは、水寺院の儀礼カレンダーが「迷信」ではなく、高度に洗練された分散型最適化システムであることを科学的に証明しました。このシステムには、現代のシステム設計に応用可能ないくつかの原理が含まれています。
+  </p>
+
+  <div class="insight">
+    <div class="insight-title">スバックが示す設計原理</div>
+    <p class="prose">
+      <strong>分散型の意思決定</strong> — 中央の管理者がおらず、各エージェントが局所的な情報で判断する。にもかかわらず全体最適に近い結果が創発する。これはインターネットのルーティングプロトコルや分散データベースの一貫性モデルと同型の構造です。
+    </p>
+    <p class="prose">
+      <strong>儀礼による同期</strong> — 水寺院の祭礼は「通信プロトコル」として機能し、近隣スバック間の情報共有と合意形成を可能にする。宗教的権威が強制ではなく調整のメカニズムとして働く点が特徴的です。
+    </p>
+    <p class="prose">
+      <strong>適応と安定のバランス</strong> — システムは完全に固定されず、常にわずかな揺らぎ（シミュレーションの5%ランダム探索に相当）を維持する。気候変動や新しい品種の導入に対して、中央の命令なしに適応できる柔軟性がここから生まれます。
+    </p>
+    <p class="prose" style="margin-bottom:0;">
+      <strong>多層的なガバナンス</strong> — 水寺院の三層構造が示すように、異なるスケールの問題を異なるレベルで処理する入れ子型の統治構造が、複雑な共有資源の管理を可能にしています。これはElinor Ostromがコモンズの管理原則として定式化した知見とも深く共鳴します。
+    </p>
+  </div>
+</div>
+
+
+<!-- ===== 7. モデルの限界 ===== -->
+<div class="section">
+  <h2 class="section-title">モデルの限界と発展</h2>
+  <p class="prose">
+    このシミュレーションはLansing & Kremerの古典モデルを忠実に再現していますが、現実のスバックシステムにはモデルに含まれていない重要な要素があります。現実では水は複雑な地形を流れ、単純な上流-下流の一方向ではありません。また、社会的な紐帯、カースト、土地所有の歴史などがスバック間の関係に影響します。気候変動や観光開発による水の競合も、現代のスバックが直面する新たな課題です。
+  </p>
+  <p class="prose">
+    Janssen（2007）やLansing et al.（2009）による拡張モデルでは、より現実的なネットワーク構造や、水寺院の「出芽（budding）」による新しい調整単位の形成過程が組み込まれています。それでも、このシンプルなモデルが示す「局所的ルールからの全体最適の創発」という基本的な洞察は、複雑適応系の理解における重要な基礎であり続けています。
+  </p>
+</div>
+
+
+<!-- ===== 参考文献 ===== -->
+<div class="section">
+  <h2 class="section-title">参考文献</h2>
+  <div class="card" style="font-size:13px; line-height:2;">
+    <p>Lansing, J.S. & Kremer, J.N. (1993). "Emergent Properties of Balinese Water Temple Networks." <em>American Anthropologist</em> 95(1):97-114.</p>
+    <p>Janssen, M.A. (2007). "Coordination in irrigation systems: An analysis of the Lansing-Kremer model of Bali." <em>Agricultural Systems</em> 93(1-3):170-190.</p>
+    <p>Lansing, J.S. et al. (2009). "A robust budding model of Balinese water temple networks." <em>World Archaeology</em> 41(1):112-133.</p>
+    <p>Lansing, J.S. (2006). <em>Perfect Order: Recognizing Complexity in Bali.</em> Princeton University Press.</p>
+    <p>Ostrom, E. (1990). <em>Governing the Commons: The Evolution of Institutions for Collective Action.</em> Cambridge University Press.</p>
+  </div>
+</div>
+
+
+<div class="footer">
+  Subak Simulation v2.0 — Lansing & Kremer (1993) model, reimplemented 2026
+</div>
+
+</div><!-- /container -->
+
+
+<script>
+const DATA = [{"step": 0, "avg_yield": 6.981200282828282, "min_yield": 5.6697454545454535, "max_yield": 8.476201696969698, "avg_pest_loss": 0.27611111111111114, "avg_water_loss": 0.06755050505050506, "phases": [[1, 4, 5, 4, 5, 2, 0, 0, 4, 5, 2, 0], [4, 0, 3, 1, 1, 2, 1, 2, 5, 0, 2, 5], [1, 2, 5, 4, 5, 4, 2, 1, 1, 4, 0, 1], [0, 1, 4, 4, 3, 3, 2, 1, 3, 0, 1, 5], [0, 4, 4, 1, 0, 5, 1, 1, 1, 4, 5, 1], [4, 5, 2, 0, 3, 2, 4, 1, 3, 4, 1, 1], [2, 1, 4, 4, 4, 1, 1, 5, 5, 2, 1, 4], [2, 5, 3, 1, 4, 2, 5, 4, 5, 1, 4, 2], [5, 0, 5, 3, 3, 1, 3, 4, 3, 3, 3, 2], [2, 2, 2, 2, 1, 5, 4, 3, 0, 0, 4, 5], [1, 4, 5, 1, 5, 5, 1, 0, 1, 0, 5, 3], [2, 5, 0, 2, 4, 2, 0, 2, 0, 5, 2, 5]], "yields": [[6.02, 6.85, 7.67, 7.67, 6.85, 6.85, 7.67, 6.85, 7.67, 7.67, 6.85, 7.26], [5.98, 5.98, 6.02, 6.62, 7.24, 7.84, 8.48, 7.22, 7.21, 7.21, 6.61, 6.8], [7.6, 7.17, 7.17, 7.8, 7.17, 7.19, 7.78, 8.41, 6.57, 5.96, 7.17, 6.78], [8.37, 7.12, 7.74, 7.74, 7.24, 7.86, 8.35, 7.72, 6.01, 6.54, 7.12, 5.92], [6.71, 7.1, 7.1, 7.06, 7.12, 6.51, 7.06, 8.27, 6.46, 7.1, 6.51, 6.66], [6.65, 7.08, 5.9, 6.48, 7.19, 7.12, 5.84, 6.38, 6.57, 7.05, 6.98, 7.37], [7.49, 6.33, 6.99, 6.99, 7.59, 7.51, 6.33, 7.06, 7.06, 7.08, 6.92, 5.8], [6.65, 6.43, 6.54, 5.68, 6.92, 7.05, 6.43, 8.11, 7.03, 6.27, 6.33, 6.65], [6.58, 7.67, 6.38, 7.14, 7.14, 6.24, 7.14, 8.04, 7.14, 7.14, 8.35, 7.39], [7.37, 6.98, 6.98, 8.17, 6.22, 6.94, 7.44, 7.03, 7.05, 7.05, 7.44, 6.55], [7.17, 6.82, 6.91, 6.78, 6.91, 6.91, 6.78, 7.01, 7.94, 8.21, 6.91, 5.82], [6.91, 7.22, 7.37, 6.51, 6.41, 5.73, 6.58, 5.73, 7.37, 7.22, 5.73, 5.67]], "phase_counts": [19, 31, 25, 15, 27, 27], "synchrony": 0.015}, {"step": 1, "avg_yield": 7.521534518518518, "min_yield": 5.6697454545454535, "max_yield": 8.4968, "avg_pest_loss": 0.1677777777777778, "avg_water_loss": 0.06952861952861952, "phases": [[4, 4, 5, 4, 4, 2, 1, 0, 4, 5, 5, 4], [1, 2, 5, 4, 2, 1, 1, 1, 4, 5, 0, 4], [0, 1, 4, 4, 4, 3, 1, 0, 1, 0, 0, 0], [5, 0, 4, 4, 3, 1, 2, 1, 1, 1, 0, 1], [0, 1, 4, 4, 3, 3, 2, 1, 1, 4, 1, 1], [2, 4, 4, 3, 4, 1, 2, 1, 5, 4, 1, 1], [2, 2, 4, 4, 4, 4, 1, 3, 2, 2, 2, 1], [2, 0, 4, 3, 4, 1, 4, 4, 4, 3, 3, 2], [0, 0, 0, 0, 3, 3, 4, 4, 0, 3, 3, 3], [2, 0, 2, 2, 2, 4, 4, 4, 1, 0, 3, 4], [2, 5, 0, 2, 5, 5, 4, 1, 3, 0, 0, 5], [5, 0, 0, 0, 5, 5, 1, 0, 1, 0, 5, 3]], "yields": [[7.26, 7.67, 8.5, 8.5, 6.85, 7.67, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5], [7.65, 7.24, 7.82, 7.76, 6.62, 7.86, 8.48, 7.86, 7.15, 8.44, 7.86, 6.75], [8.46, 7.78, 7.71, 8.31, 7.71, 6.64, 7.78, 8.46, 7.78, 8.46, 8.46, 7.63], [8.39, 7.74, 7.65, 8.25, 7.86, 6.51, 8.44, 8.33, 8.33, 7.72, 8.35, 8.33], [7.5, 7.03, 7.61, 8.21, 8.46, 7.22, 8.41, 8.23, 7.03, 6.41, 7.63, 8.23], [6.76, 6.37, 8.15, 8.41, 7.55, 6.35, 8.39, 6.94, 6.54, 6.96, 7.53, 8.13], [8.35, 6.53, 7.48, 8.06, 8.06, 6.3, 6.29, 7.17, 7.14, 7.74, 8.35, 8.04], [6.65, 6.48, 6.82, 7.76, 7.4, 5.67, 6.82, 7.98, 6.82, 8.37, 8.37, 8.25], [6.66, 8.27, 7.06, 6.46, 7.71, 7.71, 7.88, 7.3, 6.46, 7.1, 8.31, 8.31], [6.61, 6.98, 6.41, 7.61, 7.01, 7.27, 7.84, 6.7, 6.82, 6.98, 7.01, 7.84], [6.55, 7.74, 6.94, 6.35, 7.14, 8.35, 6.62, 6.22, 5.8, 7.53, 7.53, 7.54], [7.06, 8.06, 8.06, 7.28, 8.27, 7.47, 6.4, 8.06, 7.17, 8.06, 7.47, 5.79]], "phase_counts": [26, 29, 20, 17, 37, 15], "synchrony": 0.027}, {"step": 2, "avg_yield": 7.783399595959596, "min_yield": 5.844872727272727, "max_yield": 8.4968, "avg_pest_loss": 0.11722222222222224, "avg_water_loss": 0.06590909090909092, "phases": [[4, 5, 5, 1, 4, 5, 1, 1, 5, 5, 5, 4], [0, 5, 5, 4, 1, 1, 1, 1, 5, 5, 5, 4], [0, 0, 4, 4, 4, 1, 1, 0, 0, 0, 0, 0], [0, 5, 4, 4, 3, 2, 2, 0, 1, 0, 0, 0], [5, 0, 4, 3, 5, 3, 2, 2, 1, 1, 0, 1], [2, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 1], [2, 2, 4, 3, 4, 4, 2, 4, 2, 3, 3, 2], [3, 0, 3, 4, 4, 3, 4, 4, 3, 3, 3, 3], [0, 0, 0, 3, 3, 4, 4, 4, 4, 3, 3, 3], [0, 0, 2, 2, 3, 5, 4, 4, 0, 0, 3, 3], [5, 0, 0, 2, 5, 5, 5, 0, 0, 0, 5, 4], [0, 0, 0, 5, 5, 4, 0, 0, 0, 0, 0, 5]], "yields": [[7.26, 8.5, 7.67, 6.02, 6.85, 6.85, 7.67, 7.67, 7.67, 8.5, 8.5, 8.5], [7.67, 8.37, 8.37, 7.21, 6.59, 7.82, 8.44, 7.82, 7.76, 8.37, 8.37, 7.62], [8.48, 7.86, 7.78, 8.39, 7.17, 7.74, 8.35, 8.48, 8.48, 8.48, 8.48, 7.65], [8.33, 8.27, 8.33, 8.33, 7.88, 8.5, 7.88, 7.12, 8.31, 8.33, 8.33, 8.33], [7.45, 7.03, 7.69, 7.86, 5.84, 7.86, 8.46, 7.84, 8.29, 8.29, 7.63, 8.29], [6.78, 6.46, 8.44, 8.44, 7.82, 7.8, 8.41, 7.8, 8.41, 8.41, 7.8, 8.23], [8.27, 6.46, 7.65, 8.37, 8.25, 7.05, 6.46, 6.45, 7.67, 8.37, 8.37, 8.27], [6.7, 6.4, 7.1, 8.17, 8.17, 8.31, 7.57, 8.17, 8.31, 8.31, 8.31, 8.31], [7.37, 8.17, 6.38, 7.57, 8.17, 8.08, 8.08, 8.08, 7.5, 7.57, 8.17, 8.17], [8.11, 7.51, 6.38, 8.17, 6.89, 7.61, 8.0, 6.84, 6.92, 6.92, 6.89, 8.06], [8.19, 8.02, 6.85, 6.35, 6.99, 8.19, 8.19, 7.44, 8.02, 8.02, 7.59, 7.96], [7.92, 7.92, 7.92, 7.3, 8.08, 7.17, 7.15, 7.92, 7.92, 7.92, 7.92, 8.08]], "phase_counts": [36, 14, 19, 24, 28, 23], "synchrony": 0.023}, {"step": 3, "avg_yield": 7.758442801346801, "min_yield": 5.8886545454545445, "max_yield": 8.4968, "avg_pest_loss": 0.12055555555555558, "avg_water_loss": 0.06902356902356903, "phases": [[5, 5, 5, 5, 4, 1, 1, 1, 5, 5, 5, 4], [0, 5, 5, 4, 1, 1, 1, 0, 0, 5, 5, 4], [0, 0, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0], [0, 0, 4, 4, 2, 2, 2, 0, 0, 0, 0, 0], [0, 5, 3, 3, 3, 2, 2, 4, 2, 2, 0, 0], [2, 3, 3, 1, 3, 2, 2, 2, 2, 2, 2, 1], [2, 2, 3, 3, 3, 3, 2, 4, 1, 2, 3, 3], [2, 0, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3], [0, 0, 0, 4, 3, 3, 4, 4, 3, 3, 3, 3], [5, 0, 2, 2, 3, 5, 5, 4, 0, 0, 3, 3], [5, 5, 0, 2, 5, 5, 5, 5, 0, 0, 0, 5], [5, 0, 0, 2, 5, 5, 5, 0, 0, 0, 5, 5]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5], [8.5, 8.35, 8.35, 7.84, 6.59, 8.44, 8.44, 8.5, 8.5, 8.35, 8.35, 7.63], [8.44, 7.82, 7.8, 8.41, 6.57, 7.26, 7.21, 8.44, 8.44, 8.44, 8.44, 7.62], [8.27, 7.67, 7.74, 7.74, 7.24, 8.48, 7.24, 7.06, 7.67, 7.67, 8.27, 8.27], [7.34, 7.06, 7.88, 7.88, 8.5, 8.41, 7.8, 5.89, 7.19, 7.19, 6.94, 8.13], [7.52, 7.82, 7.82, 5.93, 7.82, 8.33, 8.33, 7.12, 8.33, 8.33, 7.72, 7.56], [8.19, 7.59, 8.37, 7.76, 8.37, 8.37, 7.59, 6.48, 7.12, 8.19, 8.37, 7.56], [6.53, 6.3, 7.06, 8.25, 8.25, 8.25, 8.25, 8.25, 7.65, 8.25, 8.25, 8.25], [7.26, 8.04, 6.29, 7.05, 8.06, 7.48, 8.25, 8.25, 7.48, 7.48, 8.06, 8.06], [8.25, 7.4, 6.32, 7.5, 6.78, 7.05, 8.25, 7.59, 6.82, 6.82, 6.78, 7.17], [8.19, 8.19, 6.77, 6.87, 6.99, 8.19, 8.19, 8.19, 7.92, 7.92, 7.34, 7.39], [8.04, 7.84, 7.08, 6.46, 7.26, 8.04, 8.04, 7.84, 7.84, 7.84, 8.04, 8.04]], "phase_counts": [37, 9, 24, 30, 16, 28], "synchrony": 0.045}, {"step": 4, "avg_yield": 7.821208323232323, "min_yield": 5.99081212121212, "max_yield": 8.4968, "avg_pest_loss": 0.10305555555555558, "avg_water_loss": 0.07664141414141415, "phases": [[5, 5, 5, 5, 5, 1, 1, 0, 0, 5, 5, 4], [0, 5, 5, 5, 1, 1, 1, 0, 0, 5, 5, 4], [0, 0, 4, 4, 4, 2, 4, 0, 0, 1, 0, 0], [0, 0, 3, 4, 5, 2, 2, 0, 0, 0, 0, 0], [0, 3, 3, 3, 3, 3, 2, 2, 2, 2, 0, 0], [2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 3, 0], [2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3], [2, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [5, 0, 0, 3, 3, 3, 4, 4, 4, 3, 3, 3], [5, 5, 2, 2, 3, 5, 5, 4, 0, 0, 3, 3], [5, 5, 5, 2, 5, 5, 5, 5, 5, 0, 5, 5], [5, 5, 0, 5, 5, 5, 5, 5, 0, 5, 5, 5]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.46, 8.35, 8.35, 7.74, 6.61, 8.46, 7.84, 8.46, 8.46, 7.74, 8.35, 7.65], [8.39, 7.78, 7.84, 8.46, 7.22, 7.26, 5.99, 7.78, 8.39, 7.78, 8.39, 7.58], [8.27, 7.06, 7.88, 8.37, 7.05, 7.86, 7.24, 7.06, 7.67, 7.67, 8.27, 8.27], [6.55, 7.24, 8.48, 8.48, 7.86, 8.48, 8.44, 7.82, 7.82, 7.21, 6.94, 8.13], [7.54, 8.37, 8.37, 8.37, 8.37, 8.35, 8.35, 8.35, 8.35, 8.35, 7.15, 6.5], [8.23, 7.67, 8.27, 8.27, 8.27, 8.27, 8.27, 8.27, 8.23, 8.27, 8.27, 7.47], [6.6, 6.29, 6.89, 8.06, 8.06, 8.06, 8.06, 8.06, 8.06, 8.06, 8.06, 8.06], [7.43, 8.02, 6.27, 7.29, 7.86, 7.29, 8.35, 8.35, 7.74, 7.29, 7.86, 7.86], [8.21, 7.61, 6.38, 8.17, 6.61, 7.01, 8.21, 7.69, 6.82, 6.82, 6.61, 6.98], [8.13, 8.13, 6.94, 6.35, 6.94, 8.13, 8.13, 8.13, 8.13, 7.94, 7.53, 7.34], [7.92, 7.92, 7.92, 7.15, 7.92, 7.92, 7.92, 7.92, 7.92, 7.92, 7.92, 7.92]], "phase_counts": [30, 6, 19, 40, 11, 38], "synchrony": 0.09}, {"step": 5, "avg_yield": 7.747440592592593, "min_yield": 5.728121212121212, "max_yield": 8.4968, "avg_pest_loss": 0.12138888888888892, "avg_water_loss": 0.07100168350168351, "phases": [[5, 4, 5, 5, 5, 1, 1, 0, 0, 5, 5, 4], [5, 5, 5, 5, 1, 1, 2, 0, 0, 5, 5, 4], [0, 0, 4, 4, 4, 1, 1, 0, 0, 0, 0, 0], [0, 0, 3, 3, 4, 3, 2, 2, 0, 0, 0, 0], [0, 3, 3, 3, 3, 3, 1, 2, 3, 4, 0, 0], [3, 3, 3, 3, 3, 3, 2, 0, 2, 2, 2, 0], [2, 3, 3, 3, 3, 2, 2, 2, 4, 2, 3, 3], [2, 5, 3, 3, 3, 3, 4, 4, 2, 3, 3, 3], [5, 0, 0, 2, 3, 4, 4, 4, 4, 3, 3, 3], [5, 5, 2, 2, 2, 0, 2, 4, 5, 0, 3, 2], [5, 5, 5, 2, 5, 5, 5, 5, 5, 5, 0, 5], [5, 5, 0, 0, 5, 5, 5, 5, 5, 0, 5, 5]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.76, 6.61, 8.46, 7.88, 7.84, 8.46, 8.37, 8.37, 7.63], [8.41, 7.8, 7.82, 8.44, 7.21, 7.19, 8.41, 7.8, 8.41, 8.41, 8.41, 7.6], [8.27, 7.06, 7.88, 8.5, 8.37, 7.88, 8.48, 7.24, 7.06, 7.67, 8.27, 8.27], [6.56, 7.21, 8.44, 8.44, 8.44, 7.82, 7.76, 7.82, 7.82, 6.53, 6.96, 8.15], [7.5, 8.31, 8.31, 8.31, 8.31, 8.31, 7.8, 5.73, 7.19, 7.8, 7.19, 6.51], [8.33, 7.59, 8.19, 8.19, 8.19, 8.33, 7.72, 6.51, 5.9, 7.72, 8.19, 7.39], [6.63, 6.45, 6.89, 8.06, 8.06, 8.06, 7.71, 7.1, 6.43, 8.06, 8.06, 8.06], [7.43, 8.04, 6.29, 7.59, 7.92, 7.67, 7.67, 8.27, 7.67, 7.34, 7.92, 7.92], [8.21, 7.61, 6.38, 8.17, 6.98, 6.25, 5.79, 7.59, 8.21, 6.84, 6.7, 7.37], [8.15, 8.15, 6.96, 6.3, 6.96, 8.15, 7.55, 8.15, 8.15, 8.15, 7.38, 7.36], [7.94, 7.94, 7.94, 7.17, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94]], "phase_counts": [30, 7, 22, 33, 16, 36], "synchrony": 0.057}, {"step": 6, "avg_yield": 7.7562299663299665, "min_yield": 5.465430303030303, "max_yield": 8.4968, "avg_pest_loss": 0.11722222222222224, "avg_water_loss": 0.07453703703703704, "phases": [[2, 4, 5, 5, 5, 1, 3, 0, 0, 5, 2, 4], [5, 4, 5, 5, 1, 1, 1, 0, 0, 5, 5, 4], [0, 0, 4, 3, 4, 1, 2, 1, 0, 0, 0, 0], [0, 0, 3, 3, 3, 2, 2, 2, 0, 0, 0, 0], [0, 3, 3, 3, 3, 3, 2, 2, 3, 3, 0, 0], [2, 3, 3, 3, 3, 2, 3, 2, 3, 2, 3, 0], [2, 2, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3], [2, 0, 3, 3, 3, 2, 3, 4, 3, 3, 3, 3], [5, 0, 0, 2, 3, 3, 4, 4, 4, 3, 3, 3], [5, 5, 2, 2, 2, 5, 4, 4, 5, 5, 3, 3], [5, 5, 5, 2, 5, 5, 5, 5, 3, 5, 5, 5], [5, 5, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5]], "yields": [[6.02, 7.67, 8.5, 8.5, 6.85, 6.85, 6.02, 7.67, 8.5, 7.67, 6.02, 7.26], [7.6, 7.84, 8.41, 7.19, 6.62, 8.48, 7.86, 8.46, 8.46, 8.41, 7.8, 7.63], [8.41, 7.19, 7.8, 7.86, 7.19, 7.8, 8.46, 8.41, 8.41, 8.41, 8.41, 7.6], [8.29, 7.08, 7.84, 8.46, 8.46, 8.44, 8.44, 7.82, 7.08, 7.69, 8.29, 8.29], [6.58, 7.17, 8.39, 8.39, 8.39, 8.39, 8.37, 8.37, 7.78, 7.17, 6.98, 8.17], [7.52, 8.25, 8.25, 8.25, 8.25, 8.33, 8.25, 8.33, 8.25, 8.33, 7.05, 6.53], [8.25, 7.65, 8.11, 8.25, 8.25, 8.25, 8.25, 7.65, 8.25, 8.11, 8.11, 7.32], [6.51, 6.32, 6.85, 8.02, 8.02, 8.08, 8.02, 7.76, 8.02, 8.02, 8.02, 8.02], [7.5, 8.06, 6.3, 7.46, 7.86, 7.29, 8.35, 8.35, 8.35, 7.29, 7.86, 7.86], [8.29, 7.69, 6.27, 8.02, 6.85, 7.08, 8.29, 8.29, 7.69, 7.08, 6.62, 7.0], [8.19, 8.19, 6.99, 6.22, 6.99, 8.19, 8.19, 7.59, 5.47, 7.59, 7.59, 7.39], [7.98, 7.98, 8.02, 7.24, 7.98, 7.98, 7.98, 7.98, 7.21, 7.98, 7.98, 7.98]], "phase_counts": [25, 6, 27, 39, 12, 35], "synchrony": 0.076}, {"step": 7, "avg_yield": 7.7860496700336705, "min_yield": 5.5675878787878785, "max_yield": 8.4968, "avg_pest_loss": 0.11416666666666668, "avg_water_loss": 0.07066498316498317, "phases": [[4, 5, 5, 5, 5, 1, 2, 0, 0, 0, 5, 4], [0, 5, 5, 5, 1, 1, 1, 0, 0, 0, 0, 5], [0, 0, 5, 3, 3, 1, 2, 3, 0, 0, 0, 0], [0, 0, 3, 3, 3, 3, 2, 2, 0, 0, 0, 3], [0, 3, 3, 3, 3, 2, 2, 2, 2, 2, 0, 0], [2, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 0], [2, 3, 3, 2, 2, 2, 2, 2, 2, 2, 3, 3], [2, 0, 3, 2, 2, 2, 4, 4, 4, 3, 3, 3], [5, 0, 0, 3, 3, 4, 4, 4, 4, 4, 3, 3], [5, 5, 2, 2, 2, 4, 4, 4, 4, 4, 3, 3], [5, 5, 5, 2, 5, 5, 4, 4, 5, 5, 5, 5], [5, 5, 0, 0, 5, 5, 5, 5, 5, 5, 2, 5]], "yields": [[7.26, 8.5, 8.5, 8.5, 6.85, 7.67, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5], [7.62, 8.39, 8.39, 7.17, 6.62, 8.48, 8.48, 7.82, 8.44, 8.44, 8.44, 8.39], [8.33, 8.33, 7.1, 7.26, 7.26, 7.19, 8.48, 7.26, 7.72, 8.33, 8.33, 7.52], [8.21, 7.01, 7.21, 8.44, 8.44, 7.82, 8.46, 7.84, 7.01, 7.61, 7.61, 5.98], [6.53, 7.12, 8.33, 8.33, 8.33, 8.41, 8.41, 8.41, 7.8, 7.19, 6.92, 7.32], [7.5, 8.25, 8.25, 8.25, 8.25, 8.25, 8.31, 8.31, 8.31, 8.31, 7.1, 6.48], [8.19, 7.55, 8.15, 8.19, 8.19, 8.19, 7.59, 7.59, 7.59, 8.19, 8.15, 7.36], [6.46, 6.27, 6.89, 8.02, 8.02, 6.85, 7.22, 7.84, 7.84, 8.06, 8.06, 8.06], [7.49, 8.0, 6.25, 7.4, 7.98, 7.78, 8.39, 8.39, 8.39, 8.39, 7.98, 7.98], [8.27, 7.67, 6.2, 7.94, 6.78, 7.69, 8.29, 8.29, 8.29, 8.29, 7.32, 7.13], [8.23, 8.23, 7.03, 6.16, 7.03, 8.23, 8.19, 8.19, 8.23, 8.23, 7.03, 7.43], [8.04, 8.04, 7.96, 7.19, 8.04, 8.04, 8.04, 8.04, 8.04, 7.26, 5.57, 6.87]], "phase_counts": [28, 5, 32, 31, 17, 31], "synchrony": 0.061}, {"step": 8, "avg_yield": 7.715033360269361, "min_yield": 5.625963636363636, "max_yield": 8.4968, "avg_pest_loss": 0.1305555555555556, "avg_water_loss": 0.06721380471380473, "phases": [[5, 5, 5, 5, 5, 1, 1, 0, 0, 0, 5, 4], [5, 5, 5, 1, 1, 1, 1, 1, 0, 0, 5, 4], [1, 5, 5, 3, 3, 1, 2, 2, 0, 0, 0, 5], [0, 0, 3, 3, 3, 2, 2, 2, 2, 0, 0, 0], [0, 3, 3, 3, 5, 2, 3, 2, 2, 2, 0, 0], [3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 3], [2, 3, 3, 3, 3, 3, 2, 2, 4, 2, 2, 3], [2, 0, 3, 2, 2, 5, 4, 4, 4, 4, 3, 3], [5, 0, 0, 2, 2, 4, 4, 4, 4, 0, 4, 3], [5, 5, 2, 2, 3, 4, 4, 1, 4, 4, 4, 3], [5, 5, 5, 2, 5, 5, 4, 0, 4, 4, 5, 5], [5, 3, 5, 5, 5, 5, 4, 4, 5, 5, 5, 5]], "yields": [[8.5, 8.5, 8.5, 7.67, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [7.56, 8.37, 7.76, 6.61, 7.22, 8.46, 8.46, 8.46, 8.44, 8.44, 8.37, 8.48], [6.73, 7.69, 7.08, 7.26, 7.26, 7.74, 8.5, 7.88, 7.17, 8.39, 8.39, 8.29], [8.33, 7.12, 7.22, 8.46, 7.84, 8.46, 8.46, 8.46, 7.22, 7.12, 8.33, 8.33], [6.63, 7.17, 8.39, 7.78, 5.83, 7.76, 8.39, 8.37, 8.37, 7.15, 7.03, 7.43], [7.5, 8.31, 8.31, 8.31, 7.71, 8.29, 8.29, 8.29, 7.69, 8.29, 7.69, 7.5], [8.17, 7.59, 8.19, 8.19, 8.19, 7.59, 7.57, 6.98, 6.61, 6.98, 8.17, 8.19], [6.5, 6.38, 6.89, 8.06, 7.48, 7.01, 7.82, 7.82, 8.44, 7.21, 8.06, 8.06], [7.39, 8.15, 6.37, 7.42, 7.42, 7.74, 8.35, 7.74, 7.74, 5.77, 7.74, 8.0], [8.17, 7.57, 6.22, 7.96, 7.4, 8.25, 7.65, 6.49, 7.65, 7.65, 8.25, 7.21], [8.13, 7.53, 6.94, 6.19, 6.94, 8.13, 7.55, 6.32, 7.55, 8.15, 8.13, 7.34], [6.82, 5.63, 7.21, 7.21, 7.98, 7.98, 8.08, 7.3, 7.98, 7.98, 7.98, 7.98]], "phase_counts": [21, 10, 29, 28, 22, 34], "synchrony": 0.032}, {"step": 9, "avg_yield": 7.676593966329967, "min_yield": 5.684339393939394, "max_yield": 8.4968, "avg_pest_loss": 0.1377777777777778, "avg_water_loss": 0.06683501683501684, "phases": [[5, 5, 5, 5, 5, 1, 1, 4, 0, 5, 5, 4], [5, 5, 5, 5, 1, 1, 1, 0, 0, 1, 5, 4], [0, 5, 5, 3, 3, 2, 2, 2, 0, 0, 0, 4], [0, 0, 3, 3, 3, 2, 2, 0, 2, 0, 0, 0], [0, 3, 3, 3, 3, 2, 2, 2, 2, 2, 0, 0], [3, 3, 3, 3, 3, 2, 3, 2, 2, 2, 2, 3], [2, 3, 2, 3, 3, 2, 2, 2, 4, 2, 3, 3], [2, 0, 3, 3, 3, 4, 4, 4, 1, 4, 0, 3], [5, 0, 0, 2, 4, 4, 4, 4, 4, 2, 4, 3], [5, 5, 2, 2, 4, 4, 4, 1, 4, 4, 4, 4], [5, 5, 5, 2, 5, 4, 5, 4, 4, 4, 4, 5], [5, 5, 5, 5, 5, 5, 4, 4, 5, 4, 5, 5]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 7.67, 6.02, 7.67, 7.67, 8.5, 8.5], [8.35, 8.35, 8.35, 7.14, 6.61, 8.46, 8.46, 7.24, 8.48, 7.22, 7.74, 8.46], [8.44, 8.25, 7.05, 7.26, 7.88, 8.5, 8.5, 6.64, 7.21, 8.44, 7.82, 6.8], [8.35, 7.14, 7.22, 8.46, 8.46, 8.44, 7.82, 5.92, 6.59, 7.14, 8.35, 7.54], [6.63, 7.17, 8.39, 8.39, 8.39, 8.37, 8.37, 7.76, 8.37, 7.15, 7.03, 7.43], [7.5, 8.31, 8.31, 8.31, 8.31, 8.27, 8.31, 8.27, 7.67, 8.27, 7.67, 7.5], [8.17, 7.57, 8.17, 8.17, 8.17, 7.57, 7.57, 6.98, 5.96, 6.98, 7.57, 8.17], [6.48, 6.38, 6.89, 8.06, 8.06, 7.78, 7.78, 7.17, 5.93, 5.95, 5.79, 7.28], [7.41, 8.13, 6.35, 6.85, 7.71, 8.31, 8.31, 7.71, 7.1, 5.68, 7.1, 7.98], [8.19, 7.59, 6.24, 7.4, 7.59, 8.19, 7.59, 5.92, 7.59, 7.59, 8.19, 8.19], [8.15, 8.15, 6.96, 6.2, 7.55, 8.04, 8.15, 7.46, 8.04, 8.04, 8.04, 8.15], [8.02, 8.02, 8.02, 7.24, 8.02, 8.02, 7.94, 7.94, 8.02, 7.94, 8.02, 8.02]], "phase_counts": [20, 8, 28, 26, 30, 32], "synchrony": 0.038}, {"step": 10, "avg_yield": 7.825676269360269, "min_yield": 5.640557575757575, "max_yield": 8.4968, "avg_pest_loss": 0.1077777777777778, "avg_water_loss": 0.06771885521885522, "phases": [[5, 5, 5, 5, 5, 1, 0, 1, 0, 5, 5, 4], [5, 5, 5, 5, 1, 2, 2, 0, 0, 0, 5, 4], [0, 0, 5, 3, 2, 2, 2, 2, 0, 0, 0, 4], [0, 0, 3, 3, 3, 3, 2, 0, 2, 0, 0, 0], [0, 2, 3, 3, 3, 2, 2, 1, 2, 2, 0, 0], [3, 3, 3, 3, 3, 2, 2, 3, 2, 2, 2, 3], [2, 3, 3, 1, 3, 2, 3, 2, 2, 2, 5, 3], [2, 0, 2, 3, 3, 4, 4, 3, 4, 2, 1, 3], [5, 0, 3, 3, 4, 4, 4, 4, 4, 4, 5, 4], [4, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 5, 5, 4, 4, 5, 5, 4, 4, 4, 4], [5, 5, 5, 5, 5, 4, 5, 5, 4, 2, 4, 5]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5], [8.35, 8.35, 8.35, 7.14, 7.22, 8.5, 7.26, 7.22, 8.46, 8.46, 8.35, 8.48], [8.39, 8.39, 7.05, 7.26, 8.46, 8.46, 8.46, 6.61, 7.17, 8.39, 7.78, 6.81], [8.29, 7.08, 7.24, 8.48, 8.48, 8.48, 7.76, 6.48, 6.54, 7.08, 8.29, 7.49], [6.58, 7.12, 8.39, 8.39, 8.39, 8.33, 8.33, 7.82, 8.33, 7.12, 6.98, 7.37], [7.52, 8.33, 8.33, 7.72, 8.33, 8.23, 8.23, 7.72, 8.23, 8.23, 7.03, 7.52], [8.13, 7.59, 7.59, 5.96, 7.59, 7.53, 8.19, 8.13, 7.53, 7.53, 5.83, 7.39], [6.46, 6.33, 7.44, 7.5, 8.08, 7.82, 8.44, 8.08, 7.21, 6.85, 6.56, 7.3], [7.41, 7.5, 6.84, 8.0, 8.37, 8.37, 8.37, 8.37, 8.37, 7.76, 7.61, 8.37], [8.23, 8.17, 7.57, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23], [8.13, 8.13, 8.13, 8.13, 8.02, 8.02, 8.13, 8.13, 8.02, 7.44, 8.02, 8.02], [8.0, 8.0, 8.0, 8.0, 8.0, 7.9, 8.0, 8.0, 7.13, 5.64, 7.13, 8.0]], "phase_counts": [21, 6, 27, 26, 32, 32], "synchrony": 0.049}, {"step": 11, "avg_yield": 7.943061925925925, "min_yield": 6.429964606060606, "max_yield": 8.4968, "avg_pest_loss": 0.07583333333333335, "avg_water_loss": 0.07984006734006735, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 4], [5, 5, 5, 5, 2, 2, 2, 1, 0, 5, 5, 4], [0, 0, 0, 3, 3, 2, 2, 2, 0, 0, 0, 4], [0, 0, 3, 3, 3, 3, 3, 1, 2, 0, 0, 0], [0, 3, 3, 3, 3, 3, 2, 2, 2, 2, 0, 3], [3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 4], [2, 3, 3, 3, 3, 2, 4, 3, 2, 2, 2, 3], [2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 4], [4, 5, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4], [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [4, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 5, 5, 4, 4, 5, 5, 4, 4, 4, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.24, 8.48, 8.48, 8.46, 8.48, 8.37, 8.37, 8.46], [8.46, 8.46, 7.22, 7.26, 8.5, 8.41, 8.41, 7.8, 7.22, 8.46, 7.84, 6.8], [8.33, 7.12, 7.22, 8.46, 8.46, 8.46, 7.84, 7.82, 7.14, 7.12, 8.33, 6.71], [6.63, 7.14, 8.35, 8.35, 8.35, 8.35, 8.33, 8.33, 8.33, 7.12, 6.43, 6.73], [7.43, 8.23, 8.23, 8.23, 8.23, 8.25, 7.65, 8.25, 8.25, 8.25, 7.05, 7.6], [8.13, 8.13, 8.13, 8.13, 8.13, 6.94, 7.17, 8.13, 7.53, 7.53, 7.53, 8.13], [7.24, 7.42, 8.0, 8.0, 8.37, 7.76, 8.37, 8.37, 7.76, 7.76, 7.65, 8.37], [7.43, 7.03, 7.36, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23], [8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02], [7.78, 8.21, 8.21, 7.78, 7.78, 7.78, 7.78, 7.78, 7.78, 7.78, 7.78, 7.78], [8.17, 8.17, 8.17, 8.17, 7.57, 7.57, 8.17, 8.17, 7.57, 7.57, 7.57, 7.92]], "phase_counts": [15, 4, 24, 29, 50, 22], "synchrony": 0.101}, {"step": 12, "avg_yield": 7.870731003367003, "min_yield": 5.7864969696969695, "max_yield": 8.4968, "avg_pest_loss": 0.09194444444444445, "avg_water_loss": 0.0771043771043771, "phases": [[5, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 4], [5, 5, 5, 5, 3, 2, 1, 1, 0, 5, 4, 4], [0, 0, 0, 3, 2, 3, 2, 1, 2, 0, 0, 4], [0, 0, 3, 3, 3, 3, 3, 2, 3, 0, 0, 0], [0, 3, 3, 3, 3, 3, 3, 4, 2, 2, 0, 4], [3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 3], [2, 3, 3, 3, 4, 2, 4, 4, 2, 2, 3, 4], [2, 3, 3, 4, 4, 4, 2, 4, 4, 4, 4, 4], [4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 4, 4], [4, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 5, 5, 4, 4, 5, 5, 4, 4, 4, 4], [5, 5, 5, 5, 1, 5, 5, 5, 5, 4, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.26, 8.5, 8.44, 8.44, 7.86, 8.37, 7.84, 8.46], [8.46, 8.46, 7.22, 7.24, 8.48, 8.48, 8.48, 8.39, 7.24, 7.84, 7.22, 6.78], [8.35, 7.14, 7.21, 8.44, 8.44, 8.44, 8.44, 7.8, 7.82, 7.14, 8.35, 6.73], [6.65, 7.1, 8.31, 8.31, 8.31, 8.31, 8.31, 6.56, 7.78, 7.17, 6.45, 6.76], [7.39, 8.19, 8.19, 8.19, 8.19, 8.19, 7.74, 7.14, 8.35, 8.35, 7.74, 8.19], [8.25, 8.04, 8.04, 8.04, 7.74, 6.45, 6.53, 7.14, 7.05, 7.65, 8.04, 8.35], [7.37, 7.96, 7.96, 8.27, 8.27, 7.06, 5.79, 7.67, 7.67, 7.67, 8.27, 8.27], [7.32, 8.11, 8.11, 8.11, 8.11, 8.11, 7.51, 8.11, 8.11, 8.27, 8.11, 8.11], [7.88, 8.25, 8.25, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88], [8.21, 8.21, 8.21, 8.21, 7.11, 7.67, 8.21, 8.21, 7.67, 7.67, 7.67, 7.67], [8.08, 8.08, 8.08, 7.3, 5.93, 7.3, 8.08, 8.08, 8.08, 7.55, 7.92, 7.92]], "phase_counts": [14, 7, 18, 30, 47, 28], "synchrony": 0.082}, {"step": 13, "avg_yield": 7.871552202020202, "min_yield": 6.2690143030303025, "max_yield": 8.4968, "avg_pest_loss": 0.09333333333333335, "avg_water_loss": 0.07537878787878788, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 4], [5, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [0, 0, 0, 2, 2, 2, 2, 2, 1, 5, 0, 4], [0, 0, 3, 3, 2, 3, 2, 3, 3, 0, 0, 0], [0, 3, 3, 3, 3, 3, 3, 3, 2, 2, 0, 3], [2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 4], [2, 2, 3, 4, 4, 2, 5, 4, 2, 2, 4, 4], [2, 4, 4, 4, 4, 4, 4, 4, 4, 5, 4, 4], [4, 5, 5, 4, 4, 4, 4, 4, 2, 3, 4, 4], [5, 5, 5, 5, 4, 4, 5, 5, 4, 5, 4, 4], [5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.24, 8.48, 8.46, 8.46, 8.48, 8.37, 7.84, 8.46], [8.46, 8.46, 7.22, 7.21, 8.44, 8.44, 8.44, 8.44, 7.19, 7.67, 7.22, 6.78], [8.37, 7.15, 7.26, 8.5, 8.33, 8.5, 8.33, 8.5, 7.26, 7.15, 8.37, 6.75], [6.66, 7.17, 8.39, 8.39, 8.39, 8.39, 8.39, 8.39, 8.29, 7.08, 6.46, 6.76], [7.45, 8.23, 8.23, 8.23, 8.23, 8.23, 7.63, 7.65, 8.25, 8.25, 6.45, 7.58], [8.15, 7.55, 8.11, 8.37, 7.76, 6.37, 7.05, 7.15, 6.96, 6.96, 7.15, 8.37], [6.48, 7.06, 8.27, 8.27, 8.27, 7.67, 8.27, 8.27, 7.06, 7.03, 8.27, 8.27], [7.28, 8.21, 8.21, 8.06, 8.06, 8.06, 8.06, 7.48, 6.27, 6.91, 8.06, 8.06], [8.17, 8.17, 8.17, 8.17, 7.9, 7.9, 8.17, 8.17, 7.32, 7.57, 7.9, 7.9], [8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 7.8, 8.06, 8.06], [7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.08, 7.22, 8.02]], "phase_counts": [13, 5, 25, 24, 35, 42], "synchrony": 0.085}, {"step": 14, "avg_yield": 7.806079851851852, "min_yield": 5.815684848484848, "max_yield": 8.4968, "avg_pest_loss": 0.10222222222222224, "avg_water_loss": 0.08101851851851853, "phases": [[5, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 4], [5, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [0, 0, 0, 3, 5, 3, 1, 3, 0, 5, 0, 4], [0, 0, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0], [0, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 4], [3, 3, 3, 3, 3, 3, 3, 3, 0, 2, 4, 4], [2, 3, 4, 4, 4, 3, 4, 3, 2, 5, 4, 4], [2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4], [5, 1, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 5, 0, 5, 5, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 6.64, 8.5, 8.44, 7.82, 8.48, 8.37, 7.84, 8.46], [8.46, 8.46, 7.22, 6.64, 5.86, 7.26, 6.56, 6.64, 7.22, 8.27, 7.22, 6.78], [8.35, 7.14, 7.21, 8.44, 7.82, 8.44, 7.82, 8.44, 7.21, 7.14, 8.35, 6.73], [6.65, 7.08, 8.29, 8.29, 8.29, 8.29, 8.29, 8.29, 7.69, 7.22, 6.45, 6.76], [7.34, 8.13, 8.13, 8.13, 8.13, 8.13, 8.13, 7.53, 5.82, 6.59, 7.15, 8.37], [8.41, 7.96, 8.33, 8.33, 8.33, 7.96, 8.33, 7.96, 6.57, 7.03, 8.33, 8.33], [6.75, 7.61, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 7.61, 8.21, 8.21, 8.21], [7.41, 8.21, 7.98, 7.98, 7.98, 7.98, 7.98, 7.98, 7.98, 7.98, 7.98, 7.98], [8.17, 7.57, 8.17, 8.17, 8.17, 8.17, 8.17, 8.17, 8.17, 7.78, 7.78, 7.78], [7.21, 5.93, 7.4, 7.98, 7.98, 7.98, 7.98, 7.98, 7.4, 6.75, 7.9, 7.9], [7.82, 7.06, 7.82, 7.82, 7.82, 7.82, 7.82, 8.19, 7.82, 6.3, 7.08, 7.84]], "phase_counts": [16, 7, 7, 34, 38, 42], "synchrony": 0.113}, {"step": 15, "avg_yield": 7.850379986531987, "min_yield": 5.815684848484848, "max_yield": 8.4968, "avg_pest_loss": 0.09333333333333335, "avg_water_loss": 0.08122895622895623, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 3], [5, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [0, 0, 0, 3, 3, 2, 1, 3, 0, 5, 0, 4], [0, 0, 3, 3, 3, 3, 5, 3, 3, 0, 0, 0], [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 4], [2, 3, 4, 4, 4, 3, 4, 3, 0, 2, 4, 4], [2, 2, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4], [2, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [5, 5, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4], [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4], [5, 5, 5, 5, 5, 5, 5, 0, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 0, 0, 0, 5, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.24, 8.48, 8.46, 7.84, 8.48, 8.37, 7.86, 8.48], [8.46, 8.46, 7.22, 7.24, 8.48, 8.44, 7.19, 6.62, 7.22, 8.27, 7.22, 6.8], [8.35, 7.14, 7.19, 8.41, 8.41, 7.8, 5.84, 7.8, 7.19, 7.14, 8.35, 6.73], [6.65, 7.08, 8.29, 8.29, 8.29, 8.29, 7.69, 8.29, 7.69, 7.08, 6.45, 6.78], [7.6, 8.11, 8.39, 8.39, 8.39, 8.11, 8.39, 7.51, 5.82, 6.57, 7.17, 8.39], [8.37, 7.15, 7.67, 8.27, 8.27, 8.27, 8.27, 8.27, 7.46, 7.67, 8.27, 8.27], [6.71, 7.03, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08], [7.41, 8.21, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88, 8.21, 7.88, 7.88, 7.88], [8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 7.55, 7.69, 7.69], [7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 8.19, 7.36, 6.27, 8.02, 8.02], [7.78, 7.78, 7.78, 7.78, 7.78, 7.78, 8.17, 8.17, 8.17, 6.26, 7.19, 7.96]], "phase_counts": [19, 5, 9, 28, 41, 42], "synchrony": 0.111}, {"step": 16, "avg_yield": 7.842501575757576, "min_yield": 5.830278787878788, "max_yield": 8.4968, "avg_pest_loss": 0.09861111111111114, "avg_water_loss": 0.07563131313131313, "phases": [[5, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 3], [5, 5, 5, 5, 3, 2, 1, 1, 0, 5, 4, 3], [0, 0, 0, 3, 3, 2, 1, 1, 0, 1, 0, 1], [0, 0, 3, 3, 3, 2, 3, 3, 3, 0, 0, 4], [0, 3, 4, 1, 3, 3, 4, 3, 3, 3, 0, 4], [2, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4], [2, 2, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4], [2, 5, 4, 4, 4, 4, 4, 4, 5, 4, 4, 4], [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4], [5, 5, 5, 5, 5, 5, 5, 0, 1, 5, 3, 3], [5, 5, 5, 5, 5, 5, 0, 0, 0, 3, 3, 3], [5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.24, 8.5, 8.44, 8.44, 8.48, 7.76, 7.86, 7.65], [8.46, 8.46, 7.22, 7.21, 8.44, 8.48, 7.78, 7.78, 7.84, 7.78, 7.84, 6.76], [8.35, 7.14, 7.17, 7.78, 8.39, 8.46, 7.78, 7.78, 7.17, 7.14, 7.74, 6.81], [6.66, 7.06, 7.82, 5.89, 7.67, 8.27, 8.44, 8.27, 8.27, 7.06, 6.46, 7.62], [6.8, 7.15, 8.37, 7.76, 8.37, 8.37, 8.37, 7.76, 8.15, 8.37, 7.76, 8.37], [8.41, 6.57, 7.57, 8.17, 8.17, 8.17, 7.57, 5.83, 7.57, 8.17, 8.17, 8.17], [6.75, 7.06, 7.98, 7.98, 7.98, 7.98, 7.98, 7.4, 8.27, 7.98, 7.98, 7.98], [7.43, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 7.63, 8.23, 7.8, 7.8], [8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.21, 7.08, 6.27, 7.53, 8.13], [7.86, 7.86, 7.86, 7.86, 7.86, 7.86, 8.19, 8.19, 7.59, 6.32, 8.08, 8.08], [7.73, 7.73, 7.73, 7.73, 7.73, 8.13, 8.13, 8.13, 8.13, 6.55, 7.24, 8.02]], "phase_counts": [23, 11, 7, 25, 36, 42], "synchrony": 0.081}, {"step": 17, "avg_yield": 7.686198747474748, "min_yield": 5.771903030303029, "max_yield": 8.4968, "avg_pest_loss": 0.12888888888888891, "avg_water_loss": 0.0763888888888889, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 3, 5, 1, 3], [5, 5, 2, 5, 2, 2, 1, 1, 0, 5, 4, 3], [0, 0, 0, 3, 2, 2, 2, 1, 0, 4, 4, 0], [0, 0, 4, 3, 2, 2, 2, 3, 3, 1, 0, 0], [0, 4, 4, 4, 3, 2, 4, 4, 3, 2, 4, 4], [2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], [2, 2, 4, 4, 4, 4, 4, 4, 5, 4, 1, 4], [2, 5, 5, 5, 5, 5, 5, 5, 2, 5, 4, 4], [5, 5, 5, 5, 5, 0, 5, 5, 5, 5, 5, 3], [5, 5, 5, 5, 5, 5, 5, 5, 0, 5, 3, 3], [5, 5, 5, 5, 5, 0, 0, 0, 0, 3, 3, 3], [5, 5, 5, 5, 0, 2, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 7.67, 8.5, 6.85, 7.67, 8.5, 7.67, 6.02, 6.85, 6.02, 7.26], [8.37, 7.76, 6.01, 6.54, 7.24, 8.48, 8.44, 8.44, 7.88, 8.37, 7.88, 7.63], [8.48, 8.48, 6.62, 7.21, 8.41, 8.41, 8.41, 7.78, 7.24, 7.24, 7.24, 6.83], [8.37, 7.15, 7.21, 8.41, 8.35, 8.35, 7.74, 7.8, 7.19, 7.15, 7.15, 7.56], [6.68, 7.19, 8.41, 8.41, 8.35, 7.08, 7.19, 8.41, 8.35, 7.08, 7.19, 7.6], [6.65, 7.06, 8.27, 8.27, 8.27, 7.67, 8.27, 8.27, 8.27, 7.67, 7.67, 8.27], [8.23, 6.43, 7.46, 8.04, 8.04, 8.04, 8.04, 8.04, 7.69, 7.46, 5.92, 7.26], [6.6, 7.06, 8.27, 8.27, 8.27, 8.27, 8.27, 7.67, 5.8, 7.67, 7.3, 7.88], [7.32, 8.11, 8.11, 8.11, 8.11, 8.27, 8.11, 8.11, 7.51, 8.11, 6.92, 7.5], [7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 8.25, 6.75, 7.08, 8.29], [7.71, 7.71, 7.71, 7.71, 7.71, 7.63, 8.23, 8.23, 7.63, 6.45, 8.25, 8.25], [7.61, 7.61, 7.61, 7.61, 7.36, 5.77, 7.36, 8.15, 8.15, 6.56, 7.39, 8.19]], "phase_counts": [22, 8, 18, 17, 32, 47], "synchrony": 0.074}, {"step": 18, "avg_yield": 7.82023191919192, "min_yield": 5.8886545454545445, "max_yield": 8.4968, "avg_pest_loss": 0.1002777777777778, "avg_water_loss": 0.07967171717171717, "phases": [[5, 2, 5, 5, 5, 1, 1, 1, 0, 5, 4, 3], [5, 5, 5, 5, 2, 2, 2, 1, 5, 5, 5, 4], [0, 0, 0, 3, 2, 2, 1, 1, 0, 5, 4, 3], [0, 0, 4, 3, 2, 2, 2, 4, 3, 4, 0, 4], [0, 4, 4, 4, 4, 2, 4, 4, 4, 3, 4, 4], [2, 4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4], [2, 2, 4, 4, 4, 5, 4, 4, 4, 5, 4, 4], [2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4], [5, 5, 5, 5, 5, 0, 5, 5, 0, 5, 5, 3], [5, 5, 5, 5, 3, 0, 0, 0, 0, 0, 3, 3], [5, 5, 5, 0, 5, 0, 0, 0, 0, 3, 3, 3], [5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 1, 3]], "yields": [[7.26, 6.02, 7.67, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.39, 7.78, 8.39, 7.17, 7.24, 8.48, 8.48, 7.82, 7.78, 8.39, 8.39, 8.48], [8.48, 8.48, 7.24, 7.24, 8.41, 8.41, 8.41, 7.8, 7.86, 8.25, 7.84, 8.48], [8.39, 7.17, 7.21, 8.44, 7.76, 8.37, 7.15, 7.21, 7.82, 7.82, 5.95, 7.62], [6.71, 7.14, 8.35, 8.35, 7.14, 6.49, 7.14, 8.35, 8.35, 8.39, 7.74, 8.35], [6.68, 6.98, 8.17, 8.17, 8.37, 7.57, 8.17, 8.17, 8.37, 8.17, 8.17, 8.17], [8.27, 6.46, 7.4, 7.98, 7.98, 8.23, 7.98, 7.98, 7.98, 8.23, 7.98, 7.98], [6.63, 6.99, 8.19, 8.19, 8.19, 8.19, 8.19, 8.19, 8.19, 8.19, 7.82, 7.82], [7.22, 8.0, 8.0, 8.0, 7.42, 8.31, 8.0, 8.0, 8.31, 8.0, 6.84, 7.52], [7.82, 7.82, 7.82, 7.25, 5.89, 7.67, 8.27, 8.27, 8.27, 7.06, 7.1, 8.31], [7.73, 7.73, 7.73, 8.17, 7.17, 8.17, 8.17, 8.17, 7.57, 6.45, 7.65, 8.25], [7.65, 7.65, 7.65, 7.65, 7.65, 8.06, 8.06, 8.06, 8.06, 7.28, 6.75, 6.99]], "phase_counts": [26, 7, 14, 16, 35, 46], "synchrony": 0.087}, {"step": 19, "avg_yield": 7.773709683501683, "min_yield": 5.6697454545454535, "max_yield": 8.4968, "avg_pest_loss": 0.1102777777777778, "avg_water_loss": 0.08009259259259259, "phases": [[5, 5, 5, 5, 5, 0, 1, 1, 0, 5, 4, 3], [0, 0, 5, 5, 2, 2, 1, 1, 0, 5, 4, 3], [0, 0, 0, 3, 2, 2, 2, 1, 5, 5, 3, 3], [2, 0, 3, 3, 3, 2, 1, 4, 4, 3, 4, 3], [0, 4, 4, 3, 3, 2, 4, 4, 3, 3, 3, 4], [2, 4, 4, 3, 3, 3, 4, 3, 3, 3, 4, 4], [2, 2, 5, 5, 3, 5, 5, 5, 3, 3, 5, 4], [2, 5, 5, 5, 5, 3, 0, 5, 0, 5, 5, 4], [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 5, 3], [5, 5, 5, 0, 0, 0, 0, 0, 0, 4, 3, 3], [5, 5, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0], [5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.46, 8.46, 8.37, 7.15, 7.26, 7.88, 8.46, 8.46, 8.46, 8.37, 8.48, 8.48], [7.58, 8.39, 7.17, 7.22, 8.46, 8.46, 8.46, 7.19, 7.71, 7.1, 7.84, 8.46], [5.95, 6.51, 7.17, 8.39, 8.39, 8.39, 7.17, 7.22, 8.46, 7.78, 8.46, 8.39], [5.89, 7.17, 8.39, 8.29, 8.29, 7.74, 7.17, 8.39, 8.29, 8.29, 8.29, 8.39], [6.71, 7.08, 8.29, 7.59, 8.19, 7.59, 8.29, 7.59, 8.19, 8.19, 8.29, 8.29], [8.31, 6.49, 7.67, 7.06, 6.3, 6.46, 8.27, 7.06, 6.89, 6.89, 7.67, 8.19], [6.66, 6.96, 8.15, 8.15, 6.96, 5.67, 7.69, 8.15, 7.69, 7.55, 8.15, 8.17], [7.22, 8.0, 8.0, 8.0, 8.25, 7.65, 8.25, 8.25, 8.25, 7.65, 6.84, 7.21], [7.9, 7.9, 7.9, 8.13, 8.13, 8.13, 8.13, 8.13, 7.53, 6.96, 7.38, 7.19], [7.84, 7.84, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 7.42, 6.77, 7.34, 5.67], [7.8, 7.8, 7.8, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 6.31, 7.11, 6.73]], "phase_counts": [39, 6, 12, 32, 18, 37], "synchrony": 0.087}, {"step": 20, "avg_yield": 7.803645791245791, "min_yield": 5.815684848484848, "max_yield": 8.4968, "avg_pest_loss": 0.10666666666666669, "avg_water_loss": 0.07609427609427609, "phases": [[5, 5, 5, 5, 5, 4, 1, 1, 0, 5, 4, 3], [5, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 3], [4, 5, 0, 2, 2, 2, 2, 1, 0, 5, 4, 3], [0, 0, 4, 3, 2, 2, 2, 4, 4, 4, 4, 3], [4, 4, 4, 3, 3, 2, 4, 4, 4, 3, 4, 4], [2, 4, 4, 3, 3, 4, 4, 4, 3, 3, 4, 4], [2, 2, 4, 5, 3, 0, 4, 5, 3, 3, 4, 4], [2, 5, 5, 5, 0, 0, 5, 0, 0, 5, 4, 4], [5, 5, 5, 2, 0, 0, 0, 0, 0, 0, 0, 4], [5, 5, 0, 0, 0, 0, 3, 0, 0, 0, 3, 3], [5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 3, 3], [5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 7.67, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 7.26, 7.88, 8.46, 8.46, 8.48, 8.37, 8.46, 8.48], [7.62, 8.27, 7.22, 7.22, 8.46, 8.46, 8.46, 7.8, 7.84, 8.27, 8.44, 8.46], [6.78, 7.19, 7.17, 8.44, 8.37, 8.37, 7.15, 7.17, 7.78, 8.39, 8.39, 8.44], [6.68, 7.69, 8.29, 8.39, 8.39, 7.1, 7.08, 8.29, 8.29, 8.39, 8.29, 8.29], [6.68, 6.94, 8.13, 7.72, 8.33, 6.94, 8.13, 8.13, 8.33, 8.33, 8.13, 8.13], [8.27, 6.46, 7.4, 7.03, 6.45, 6.54, 7.4, 7.63, 7.05, 7.65, 7.98, 7.98], [6.63, 6.99, 8.19, 7.59, 7.74, 8.35, 8.19, 8.35, 7.74, 7.59, 7.32, 7.9], [7.3, 8.08, 7.5, 5.82, 7.67, 8.27, 7.67, 8.27, 8.27, 8.27, 6.46, 7.09], [8.02, 8.02, 8.13, 7.53, 8.13, 7.53, 6.4, 7.53, 8.13, 7.53, 6.99, 8.19], [7.98, 7.98, 7.98, 7.98, 7.98, 7.4, 6.4, 7.4, 7.98, 7.4, 7.53, 8.13], [7.96, 7.96, 7.82, 7.82, 7.82, 7.82, 7.06, 7.82, 7.82, 7.06, 7.3, 8.08]], "phase_counts": [41, 5, 16, 22, 32, 28], "synchrony": 0.075}, {"step": 21, "avg_yield": 7.763620175084175, "min_yield": 5.713527272727273, "max_yield": 8.4968, "avg_pest_loss": 0.11166666666666668, "avg_water_loss": 0.0803872053872054, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 3], [5, 5, 5, 5, 2, 5, 1, 1, 0, 5, 4, 3], [5, 5, 5, 2, 2, 2, 5, 3, 0, 4, 4, 3], [4, 5, 3, 3, 2, 2, 2, 4, 4, 4, 4, 3], [4, 4, 3, 3, 3, 2, 4, 4, 3, 3, 4, 3], [2, 5, 4, 3, 0, 3, 4, 3, 3, 3, 3, 4], [2, 2, 5, 3, 3, 0, 5, 0, 3, 3, 4, 4], [2, 5, 5, 5, 0, 0, 0, 0, 0, 0, 4, 4], [5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3], [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [5, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 6.85, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.37, 8.37, 8.37, 7.15, 6.62, 5.93, 7.22, 7.84, 8.48, 8.37, 8.48, 8.48], [8.25, 8.25, 7.05, 7.22, 8.46, 7.22, 5.84, 6.61, 6.61, 7.84, 8.46, 8.46], [8.41, 7.57, 7.19, 8.41, 8.39, 8.39, 6.56, 7.8, 7.8, 8.41, 8.41, 8.41], [7.5, 8.31, 8.35, 8.35, 7.74, 7.72, 7.1, 8.31, 8.35, 8.35, 8.31, 8.35], [6.7, 6.96, 8.21, 7.63, 5.98, 7.03, 8.21, 7.63, 8.23, 8.23, 8.23, 8.21], [8.29, 6.48, 6.94, 6.92, 6.33, 7.19, 8.13, 7.19, 6.92, 7.51, 8.15, 8.15], [6.65, 6.91, 8.08, 7.5, 7.76, 8.37, 8.37, 8.37, 7.76, 7.15, 6.92, 8.11], [7.24, 8.02, 8.02, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 6.45, 7.24], [7.96, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 7.5, 6.84, 8.0], [7.94, 7.94, 7.9, 7.9, 7.9, 7.32, 7.9, 7.9, 7.9, 7.32, 7.38, 7.96], [7.9, 7.73, 7.73, 7.73, 6.98, 5.71, 6.98, 7.73, 7.73, 6.98, 7.28, 7.92]], "phase_counts": [45, 4, 13, 29, 23, 30], "synchrony": 0.094}, {"step": 22, "avg_yield": 7.778181104377105, "min_yield": 5.976218181818181, "max_yield": 8.4968, "avg_pest_loss": 0.10944444444444447, "avg_water_loss": 0.07874579124579124, "phases": [[4, 5, 5, 5, 5, 1, 1, 1, 3, 5, 5, 3], [5, 5, 1, 5, 2, 2, 1, 1, 0, 5, 4, 3], [4, 5, 5, 2, 2, 2, 1, 1, 0, 4, 4, 3], [4, 4, 3, 3, 2, 2, 2, 4, 0, 1, 4, 3], [4, 3, 3, 3, 2, 2, 4, 3, 3, 4, 4, 3], [2, 4, 3, 3, 3, 4, 4, 4, 3, 3, 4, 3], [2, 2, 4, 3, 0, 0, 0, 0, 3, 3, 3, 4], [2, 5, 5, 0, 0, 0, 0, 0, 0, 1, 4, 4], [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 3, 3], [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 7.67, 8.5, 6.85, 7.67, 8.5, 7.67, 6.02, 7.67, 7.67, 7.26], [8.37, 7.76, 5.98, 6.54, 7.26, 8.5, 8.44, 8.44, 7.88, 8.37, 8.48, 8.46], [8.46, 8.29, 6.48, 7.22, 8.46, 8.46, 8.37, 7.76, 7.86, 7.22, 8.46, 8.44], [8.39, 8.39, 7.8, 8.41, 8.39, 8.39, 7.17, 6.56, 7.22, 6.51, 7.78, 8.41], [7.5, 8.35, 8.35, 8.35, 8.33, 7.12, 7.1, 8.35, 7.74, 7.71, 8.31, 8.35], [6.68, 7.03, 8.23, 8.23, 7.63, 7.03, 7.63, 7.63, 8.23, 8.23, 8.23, 8.23], [8.27, 6.46, 7.53, 6.92, 7.21, 7.82, 7.82, 7.21, 6.92, 7.51, 8.11, 8.13], [6.63, 7.05, 8.25, 7.74, 8.35, 8.35, 8.35, 8.35, 7.74, 7.1, 6.91, 8.08], [7.41, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 7.63, 6.43, 7.26], [8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 8.02, 7.44, 6.27, 7.44, 8.02], [8.19, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 7.84, 6.7, 7.4, 7.98], [8.17, 7.65, 7.65, 7.65, 7.65, 8.17, 7.65, 7.65, 7.65, 6.91, 7.17, 7.94]], "phase_counts": [49, 10, 14, 29, 24, 18], "synchrony": 0.074}, {"step": 23, "avg_yield": 7.843006572390572, "min_yield": 5.976218181818181, "max_yield": 8.4968, "avg_pest_loss": 0.09611111111111113, "avg_water_loss": 0.07971380471380471, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 3], [4, 5, 5, 5, 2, 2, 1, 1, 1, 4, 4, 4], [4, 4, 5, 2, 2, 2, 2, 1, 0, 4, 2, 3], [4, 4, 3, 3, 2, 2, 2, 3, 0, 4, 4, 3], [4, 4, 3, 3, 2, 2, 3, 3, 3, 4, 3, 0], [2, 3, 3, 3, 2, 0, 0, 3, 3, 3, 4, 3], [2, 2, 5, 3, 0, 0, 0, 0, 3, 3, 4, 3], [2, 5, 5, 0, 0, 0, 0, 0, 0, 0, 3, 4], [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 4], [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3], [5, 5, 0, 0, 0, 5, 0, 0, 0, 0, 3, 3], [5, 5, 0, 0, 5, 5, 5, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.46, 8.39, 8.39, 7.17, 7.24, 8.48, 8.46, 8.46, 7.84, 7.84, 7.84, 8.46], [8.37, 8.37, 7.12, 7.21, 8.44, 8.44, 8.44, 7.78, 7.86, 7.15, 6.59, 8.48], [8.31, 8.31, 7.84, 8.46, 8.33, 8.33, 8.33, 7.22, 6.61, 7.71, 7.71, 7.63], [7.43, 8.23, 8.37, 8.37, 8.27, 7.67, 7.76, 8.37, 7.76, 8.23, 7.76, 5.98], [7.43, 8.25, 7.65, 8.25, 7.03, 7.19, 7.19, 7.05, 8.25, 8.25, 8.17, 7.45], [8.19, 6.99, 6.49, 6.33, 7.15, 8.37, 8.37, 7.15, 6.92, 7.51, 8.15, 8.11], [6.56, 7.08, 8.29, 7.69, 8.29, 8.29, 8.29, 8.29, 7.69, 7.08, 6.85, 8.13], [7.36, 8.15, 8.25, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 6.37, 7.32], [8.23, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.94, 7.36, 6.84, 8.0], [8.21, 8.21, 7.76, 7.76, 7.76, 8.21, 7.76, 7.76, 7.76, 7.19, 7.38, 7.96], [8.15, 8.15, 7.61, 7.61, 8.15, 8.15, 8.15, 7.61, 7.61, 6.87, 7.15, 7.92]], "phase_counts": [48, 6, 18, 30, 20, 22], "synchrony": 0.081}, {"step": 24, "avg_yield": 7.778901535353536, "min_yield": 5.5529939393939385, "max_yield": 8.4968, "avg_pest_loss": 0.10805555555555557, "avg_water_loss": 0.08156565656565656, "phases": [[4, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 3], [4, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 3], [4, 5, 5, 3, 4, 2, 1, 1, 3, 0, 3, 3], [4, 4, 3, 3, 3, 2, 2, 3, 0, 4, 3, 3], [4, 3, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3], [3, 3, 5, 3, 2, 0, 0, 3, 3, 3, 3, 4], [2, 3, 5, 3, 0, 0, 0, 0, 3, 3, 4, 4], [2, 5, 5, 5, 0, 0, 0, 0, 0, 0, 4, 4], [5, 5, 5, 5, 0, 0, 0, 0, 3, 0, 0, 4], [5, 5, 5, 0, 0, 5, 0, 0, 0, 0, 3, 3], [5, 5, 5, 0, 5, 5, 5, 0, 0, 0, 3, 3], [1, 5, 5, 5, 5, 5, 5, 5, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.46, 8.39, 8.39, 7.17, 6.64, 8.5, 8.44, 8.44, 7.86, 8.39, 8.46, 8.48], [8.41, 8.31, 7.1, 7.22, 7.19, 7.84, 8.39, 7.17, 5.99, 6.61, 7.84, 8.46], [8.37, 8.37, 7.76, 8.37, 8.37, 8.44, 8.44, 7.15, 5.98, 7.15, 8.37, 8.37], [8.31, 8.25, 7.65, 8.25, 8.25, 7.78, 7.65, 8.25, 7.65, 8.25, 8.31, 8.25], [8.06, 7.48, 6.46, 7.48, 7.15, 7.19, 7.19, 6.89, 8.06, 8.06, 8.06, 8.27], [8.35, 6.77, 7.05, 6.19, 7.15, 8.37, 8.37, 7.15, 6.77, 7.34, 8.25, 8.25], [6.71, 7.03, 8.23, 7.63, 8.29, 8.29, 8.29, 8.29, 7.08, 7.08, 7.01, 8.21], [7.37, 8.17, 8.17, 8.17, 8.17, 8.17, 8.17, 7.57, 5.55, 7.57, 6.38, 7.37], [8.08, 8.08, 8.08, 8.04, 8.04, 8.08, 8.04, 8.04, 7.46, 7.46, 6.68, 7.82], [7.22, 8.0, 8.0, 7.92, 8.0, 8.0, 8.0, 7.92, 7.92, 7.34, 7.21, 7.78], [5.92, 7.11, 7.88, 7.88, 7.88, 7.88, 7.88, 7.88, 7.84, 7.08, 6.98, 7.73]], "phase_counts": [34, 8, 9, 39, 17, 37], "synchrony": 0.09}, {"step": 25, "avg_yield": 7.755451622895624, "min_yield": 5.742715151515151, "max_yield": 8.4968, "avg_pest_loss": 0.11750000000000001, "avg_water_loss": 0.0739057239057239, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 5], [4, 5, 5, 5, 1, 2, 1, 1, 0, 5, 4, 3], [4, 4, 4, 3, 3, 2, 1, 1, 0, 5, 0, 3], [4, 4, 4, 3, 2, 2, 2, 2, 3, 3, 3, 3], [4, 4, 3, 0, 3, 2, 2, 3, 1, 4, 3, 5], [2, 3, 3, 4, 3, 0, 0, 1, 3, 3, 4, 4], [2, 2, 5, 5, 0, 0, 2, 5, 3, 4, 4, 4], [2, 5, 5, 0, 0, 0, 0, 0, 0, 0, 4, 4], [5, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 4], [5, 5, 5, 5, 3, 0, 5, 0, 0, 0, 3, 3], [5, 5, 5, 0, 0, 5, 0, 0, 0, 0, 3, 3], [1, 5, 5, 0, 5, 5, 5, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 7.26], [8.46, 8.37, 8.37, 7.15, 6.61, 8.48, 8.46, 8.46, 8.48, 8.37, 7.84, 7.67], [8.41, 8.41, 8.41, 7.86, 7.86, 8.46, 8.39, 8.39, 7.84, 7.69, 6.61, 7.65], [8.35, 8.35, 8.35, 7.8, 8.44, 8.44, 8.44, 8.44, 7.19, 7.8, 7.8, 7.6], [7.49, 8.29, 7.71, 5.96, 7.71, 7.74, 7.74, 7.1, 5.92, 7.69, 7.71, 6.66], [7.5, 8.23, 7.63, 7.63, 7.03, 7.17, 7.17, 6.51, 7.03, 8.23, 8.23, 8.23], [8.29, 7.08, 7.05, 8.25, 7.74, 7.74, 5.87, 6.45, 6.94, 7.57, 8.17, 8.17], [6.63, 6.99, 8.19, 8.31, 8.31, 8.31, 7.71, 8.31, 7.71, 7.1, 6.92, 8.11], [7.36, 8.17, 8.15, 8.15, 7.57, 8.17, 8.17, 8.17, 8.17, 8.17, 6.38, 7.28], [8.08, 8.08, 8.08, 7.5, 5.74, 7.42, 8.08, 8.0, 8.0, 7.42, 6.92, 8.11], [7.21, 7.98, 7.98, 7.92, 7.34, 7.98, 7.92, 7.92, 7.92, 7.34, 7.46, 8.04], [5.89, 7.13, 7.9, 7.8, 7.9, 7.9, 7.9, 7.8, 7.8, 7.04, 7.22, 8.0]], "phase_counts": [38, 10, 14, 26, 22, 34], "synchrony": 0.051}, {"step": 26, "avg_yield": 7.85697969023569, "min_yield": 5.728121212121212, "max_yield": 8.4968, "avg_pest_loss": 0.0952777777777778, "avg_water_loss": 0.07723063973063973, "phases": [[4, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [4, 4, 4, 4, 2, 2, 1, 1, 0, 5, 4, 3], [4, 4, 4, 2, 2, 2, 2, 2, 2, 3, 3, 3], [4, 4, 4, 0, 2, 2, 2, 2, 4, 3, 4, 4], [2, 4, 3, 5, 0, 2, 2, 0, 3, 3, 4, 4], [2, 2, 5, 0, 0, 0, 0, 0, 0, 3, 4, 4], [2, 5, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4], [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 4], [5, 0, 5, 5, 0, 0, 0, 0, 0, 0, 3, 3], [5, 5, 2, 5, 5, 5, 5, 0, 0, 0, 3, 3], [5, 5, 5, 0, 5, 5, 0, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.78, 7.26, 8.5, 8.44, 8.44, 8.48, 8.39, 8.44, 8.44], [8.37, 8.37, 8.37, 7.15, 7.84, 8.46, 8.39, 8.39, 7.84, 7.71, 8.37, 8.5], [8.27, 8.27, 7.67, 6.57, 8.41, 8.41, 8.41, 8.41, 7.19, 7.86, 8.48, 8.48], [7.41, 8.21, 7.61, 6.59, 7.08, 8.29, 8.29, 7.08, 7.01, 8.41, 8.21, 8.21], [6.61, 6.91, 7.17, 7.69, 7.19, 7.01, 7.01, 6.57, 7.17, 8.39, 8.08, 8.08], [8.15, 6.37, 7.06, 8.37, 8.37, 7.76, 7.76, 8.37, 7.15, 7.12, 8.02, 8.02], [6.53, 7.05, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 7.05, 6.82, 7.98], [7.3, 8.08, 8.23, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 6.32, 7.17], [8.21, 7.88, 7.61, 8.21, 7.88, 7.88, 7.88, 7.88, 7.88, 7.3, 7.1, 8.31], [8.15, 7.55, 5.73, 7.55, 8.15, 8.15, 8.15, 7.73, 7.73, 7.17, 7.67, 8.27], [8.02, 8.02, 7.24, 7.67, 8.02, 8.02, 7.67, 7.67, 7.67, 6.93, 7.43, 8.23]], "phase_counts": [45, 7, 21, 15, 28, 28], "synchrony": 0.071}, {"step": 27, "avg_yield": 7.729611084175084, "min_yield": 5.698933333333333, "max_yield": 8.4968, "avg_pest_loss": 0.12305555555555557, "avg_water_loss": 0.07407407407407408, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 1, 5, 5, 4, 4], [4, 5, 5, 4, 2, 2, 2, 1, 0, 5, 3, 3], [4, 4, 4, 2, 2, 0, 2, 2, 2, 3, 3, 3], [4, 4, 4, 5, 2, 2, 2, 2, 3, 3, 3, 3], [2, 4, 5, 0, 0, 2, 2, 0, 3, 3, 3, 4], [2, 2, 0, 0, 0, 0, 0, 0, 0, 3, 4, 4], [2, 0, 2, 0, 5, 0, 0, 0, 0, 0, 4, 0], [5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3], [5, 5, 5, 5, 2, 5, 5, 0, 0, 0, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 3, 0, 3, 3], [5, 5, 1, 5, 5, 5, 5, 0, 0, 0, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.78, 7.24, 8.48, 8.46, 7.84, 7.78, 8.39, 8.44, 8.44], [8.37, 8.29, 8.29, 7.15, 7.82, 7.82, 8.44, 8.41, 7.86, 7.08, 7.88, 8.5], [8.33, 8.33, 7.72, 6.54, 7.76, 5.99, 7.76, 8.37, 7.76, 7.84, 8.46, 8.46], [7.47, 8.27, 8.27, 7.03, 7.06, 7.67, 8.27, 7.67, 8.39, 8.39, 8.39, 8.39], [6.6, 7.01, 8.21, 8.44, 7.21, 6.99, 6.99, 6.59, 7.1, 8.31, 8.31, 8.21], [8.13, 6.35, 7.15, 8.37, 8.37, 7.76, 7.76, 8.37, 7.15, 7.05, 8.17, 7.37], [6.51, 6.43, 5.73, 7.63, 8.19, 8.23, 8.23, 8.23, 8.23, 7.03, 6.35, 5.83], [7.37, 8.17, 7.48, 8.06, 7.48, 8.06, 8.06, 8.06, 8.06, 8.06, 6.56, 6.63], [8.13, 8.13, 8.13, 7.53, 5.7, 7.53, 8.13, 7.9, 7.32, 7.32, 7.01, 8.21], [8.0, 8.0, 7.42, 8.0, 7.42, 8.0, 8.0, 7.42, 5.79, 6.7, 7.57, 8.17], [7.84, 7.08, 5.93, 7.08, 7.84, 7.84, 7.84, 7.82, 7.06, 7.06, 7.32, 8.11]], "phase_counts": [36, 7, 23, 21, 19, 38], "synchrony": 0.059}, {"step": 28, "avg_yield": 7.772482518518519, "min_yield": 5.801090909090909, "max_yield": 8.4968, "avg_pest_loss": 0.11333333333333336, "avg_water_loss": 0.0747053872053872, "phases": [[4, 5, 5, 5, 5, 1, 1, 3, 0, 5, 4, 4], [4, 5, 2, 5, 2, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 2, 1, 5, 3, 3], [4, 4, 4, 2, 2, 2, 2, 1, 3, 3, 3, 3], [4, 4, 4, 0, 2, 2, 2, 3, 3, 3, 3, 3], [2, 4, 0, 0, 0, 0, 2, 0, 3, 3, 3, 3], [2, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4], [2, 5, 0, 0, 0, 4, 0, 0, 0, 0, 4, 4], [5, 5, 5, 0, 5, 0, 0, 0, 0, 0, 0, 3], [5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 3, 3], [5, 0, 0, 5, 5, 0, 5, 5, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 0, 3, 3, 3]], "yields": [[8.5, 8.5, 7.67, 8.5, 6.85, 7.67, 7.67, 6.02, 7.67, 8.5, 8.5, 8.5], [8.44, 7.78, 6.02, 7.17, 7.26, 8.5, 8.46, 7.84, 8.48, 8.39, 8.44, 8.44], [8.37, 8.33, 7.72, 7.12, 7.82, 8.44, 8.41, 8.44, 7.19, 6.51, 7.86, 8.48], [8.35, 8.35, 7.74, 6.54, 8.37, 8.37, 8.37, 7.15, 7.21, 7.82, 8.44, 8.44], [7.49, 8.29, 7.08, 6.61, 7.08, 7.69, 8.29, 7.14, 8.35, 8.35, 8.35, 8.35], [6.63, 6.43, 7.21, 8.44, 7.82, 7.21, 6.43, 6.59, 7.05, 8.25, 8.25, 8.25], [8.19, 6.4, 7.72, 8.33, 8.33, 7.72, 7.72, 8.33, 7.12, 6.98, 8.17, 8.21], [6.56, 7.05, 8.19, 8.19, 7.59, 5.8, 7.59, 8.19, 8.19, 6.99, 6.99, 8.19], [7.43, 8.23, 8.23, 8.04, 8.23, 7.46, 8.04, 8.04, 8.04, 8.04, 6.29, 7.34], [8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 7.9, 6.75, 6.92, 8.11], [7.98, 7.86, 7.86, 7.98, 7.98, 7.86, 7.98, 7.98, 7.4, 6.89, 8.06, 8.06], [7.86, 7.86, 7.86, 7.86, 7.86, 7.86, 7.86, 7.86, 7.04, 7.22, 8.0, 8.0]], "phase_counts": [35, 7, 18, 27, 18, 39], "synchrony": 0.063}, {"step": 29, "avg_yield": 7.808828377104378, "min_yield": 5.976218181818181, "max_yield": 8.4968, "avg_pest_loss": 0.10361111111111113, "avg_water_loss": 0.07836700336700336, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 5, 2, 4, 4], [4, 5, 5, 5, 5, 2, 4, 0, 0, 5, 4, 4], [4, 4, 5, 2, 2, 2, 1, 2, 0, 5, 3, 3], [3, 4, 4, 2, 2, 2, 1, 2, 3, 3, 3, 3], [4, 4, 4, 1, 2, 2, 2, 3, 3, 3, 3, 3], [2, 4, 0, 0, 0, 0, 2, 0, 3, 3, 3, 3], [2, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [2, 5, 5, 0, 0, 0, 0, 0, 0, 0, 4, 4], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 4], [5, 5, 5, 5, 5, 5, 4, 5, 5, 0, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 7.67, 7.67, 6.85, 6.02, 7.67, 8.5], [8.44, 8.39, 8.39, 7.78, 7.17, 7.22, 5.98, 7.26, 8.5, 7.78, 8.44, 8.44], [8.35, 8.35, 7.69, 7.21, 7.82, 8.44, 7.84, 7.21, 7.22, 7.08, 7.88, 8.5], [8.46, 8.31, 7.71, 7.74, 8.35, 8.35, 8.44, 8.35, 7.84, 7.84, 8.46, 8.46], [7.47, 8.27, 7.06, 7.8, 7.67, 7.67, 8.27, 7.74, 8.35, 8.35, 8.35, 8.35], [6.61, 6.41, 7.21, 8.44, 7.82, 7.21, 6.41, 6.59, 7.05, 8.25, 8.25, 8.25], [8.17, 6.38, 7.72, 8.33, 8.33, 8.33, 7.72, 8.33, 7.12, 6.98, 8.17, 8.17], [6.55, 7.05, 8.25, 8.19, 8.19, 8.19, 8.19, 8.19, 8.19, 6.99, 6.99, 8.19], [7.41, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 8.04, 8.04, 8.04, 6.29, 7.36], [8.06, 8.06, 8.06, 8.06, 8.06, 8.06, 8.13, 8.06, 8.06, 6.8, 6.92, 8.11], [7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 7.9, 7.32, 6.89, 8.06, 8.06], [7.71, 7.71, 7.71, 7.71, 7.71, 7.71, 7.71, 7.71, 6.96, 7.22, 8.0, 8.0]], "phase_counts": [27, 5, 19, 27, 19, 47], "synchrony": 0.082}, {"step": 30, "avg_yield": 7.784027367003367, "min_yield": 5.8886545454545445, "max_yield": 8.4968, "avg_pest_loss": 0.10888888888888891, "avg_water_loss": 0.07811447811447811, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 0, 0, 0, 4, 4], [3, 5, 5, 2, 2, 2, 1, 2, 0, 3, 3, 3], [3, 3, 4, 2, 2, 2, 3, 1, 3, 3, 3, 3], [3, 4, 4, 0, 2, 2, 1, 2, 3, 3, 3, 3], [2, 4, 0, 0, 0, 4, 2, 0, 3, 3, 3, 3], [2, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [2, 5, 5, 0, 0, 0, 5, 0, 0, 0, 4, 4], [5, 5, 5, 4, 5, 5, 0, 5, 0, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 4, 5, 5, 3, 3], [5, 5, 5, 5, 5, 5, 4, 5, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.17, 7.24, 8.48, 8.46, 7.86, 8.48, 7.24, 7.82, 8.44], [7.67, 7.12, 7.72, 7.21, 8.44, 8.44, 7.82, 7.21, 6.57, 7.26, 8.5, 8.5], [8.41, 7.8, 7.76, 7.14, 8.35, 8.35, 6.57, 7.19, 7.19, 8.41, 8.41, 8.41], [8.27, 8.35, 7.14, 6.56, 7.08, 7.69, 7.78, 7.69, 8.27, 8.27, 8.27, 8.27], [7.43, 6.49, 7.15, 8.37, 7.15, 5.89, 6.43, 6.54, 6.98, 8.17, 8.17, 8.17], [8.19, 6.4, 7.69, 8.29, 8.29, 7.69, 7.69, 8.29, 7.08, 6.91, 8.08, 8.08], [6.56, 7.08, 8.29, 7.55, 8.15, 8.15, 8.29, 8.15, 8.15, 6.96, 7.06, 7.47], [7.43, 8.23, 8.23, 7.63, 8.23, 8.23, 8.02, 8.23, 8.02, 8.02, 6.85, 6.46], [8.11, 8.11, 8.11, 8.11, 8.11, 8.11, 8.11, 8.21, 8.11, 6.92, 6.85, 7.24], [7.92, 7.92, 7.92, 7.92, 7.92, 7.92, 8.19, 7.92, 7.34, 6.82, 7.98, 7.98], [7.76, 7.76, 7.76, 7.76, 7.76, 7.76, 7.76, 7.76, 7.0, 7.15, 7.92, 7.92]], "phase_counts": [28, 6, 18, 31, 16, 45], "synchrony": 0.08}, {"step": 31, "avg_yield": 7.876353144781144, "min_yield": 6.3333944242424245, "max_yield": 8.4968, "avg_pest_loss": 0.08916666666666667, "avg_water_loss": 0.0803872053872054, "phases": [[4, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 2, 2, 2, 1, 0, 0, 3, 3, 3], [3, 3, 3, 2, 2, 2, 2, 2, 3, 3, 3, 3], [3, 4, 4, 0, 2, 2, 1, 3, 3, 3, 3, 3], [3, 4, 0, 0, 0, 2, 1, 0, 3, 3, 3, 3], [2, 2, 5, 0, 0, 0, 5, 0, 0, 3, 3, 3], [2, 5, 5, 0, 0, 5, 5, 0, 0, 0, 3, 3], [5, 5, 5, 5, 5, 5, 5, 4, 5, 0, 0, 4], [5, 5, 5, 5, 5, 5, 4, 5, 4, 5, 3, 3], [5, 5, 5, 5, 5, 4, 4, 4, 5, 3, 3, 3], [5, 5, 5, 5, 5, 5, 4, 5, 5, 3, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.17, 7.26, 8.5, 8.44, 8.44, 8.48, 7.78, 8.44, 8.44], [8.37, 7.71, 7.1, 7.22, 8.46, 8.46, 8.39, 7.84, 7.22, 7.26, 8.5, 8.5], [8.44, 7.82, 7.82, 7.78, 8.39, 8.39, 8.39, 7.78, 7.82, 8.44, 8.44, 8.44], [8.29, 8.35, 7.14, 6.57, 7.08, 8.29, 7.76, 7.08, 8.29, 8.29, 8.29, 8.29], [8.17, 7.1, 7.17, 8.39, 7.17, 7.05, 7.74, 7.17, 6.98, 8.17, 8.17, 8.17], [8.23, 6.43, 7.67, 8.31, 8.31, 7.71, 7.67, 8.31, 7.1, 6.89, 8.06, 8.06], [6.6, 7.03, 8.23, 8.21, 8.21, 8.23, 8.23, 7.61, 8.21, 7.01, 6.84, 8.0], [7.36, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 7.69, 8.15, 8.11, 6.33, 7.49], [7.98, 7.98, 7.98, 7.98, 7.98, 7.98, 8.25, 7.98, 8.25, 6.82, 6.8, 7.96], [7.82, 7.82, 7.82, 7.82, 7.82, 8.21, 8.21, 8.21, 7.25, 6.77, 7.92, 7.92], [7.69, 7.69, 7.69, 7.69, 7.69, 7.69, 8.15, 7.69, 6.95, 7.09, 7.86, 7.86]], "phase_counts": [21, 8, 16, 34, 18, 47], "synchrony": 0.078}, {"step": 32, "avg_yield": 7.907940336700337, "min_yield": 6.3333944242424245, "max_yield": 8.4968, "avg_pest_loss": 0.08666666666666668, "avg_water_loss": 0.07457912457912458, "phases": [[4, 5, 5, 5, 5, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 2, 2, 2, 2, 1, 5, 3, 3, 3], [5, 3, 3, 2, 2, 2, 2, 2, 3, 3, 3, 3], [3, 4, 4, 0, 2, 2, 2, 3, 3, 3, 3, 3], [3, 4, 0, 0, 0, 2, 1, 0, 3, 3, 3, 3], [2, 2, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [2, 5, 5, 0, 0, 5, 5, 0, 0, 0, 3, 3], [5, 5, 5, 0, 0, 5, 4, 5, 4, 5, 0, 4], [5, 5, 5, 5, 5, 4, 4, 3, 3, 4, 3, 3], [5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3], [5, 5, 5, 5, 5, 4, 4, 4, 5, 3, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.17, 7.24, 8.48, 8.46, 8.46, 8.48, 7.78, 8.44, 8.44], [8.37, 7.71, 7.1, 7.21, 8.44, 8.44, 8.44, 7.8, 6.49, 7.26, 8.5, 8.5], [6.65, 7.21, 7.82, 7.74, 8.35, 8.35, 8.35, 8.35, 7.82, 8.44, 8.44, 8.44], [7.5, 8.35, 7.14, 6.61, 7.05, 8.25, 8.25, 7.71, 8.31, 8.31, 8.31, 8.31], [8.19, 7.1, 7.21, 8.44, 7.21, 6.99, 8.39, 7.21, 6.99, 8.19, 8.19, 8.19], [8.17, 6.38, 7.74, 8.35, 8.35, 7.74, 8.35, 8.35, 7.14, 6.91, 8.08, 8.08], [6.55, 7.03, 8.23, 8.21, 8.21, 8.23, 8.23, 8.21, 7.61, 7.01, 6.85, 8.02], [7.36, 8.15, 8.15, 8.11, 8.11, 8.15, 8.29, 7.55, 7.69, 8.15, 6.33, 7.49], [8.02, 8.02, 8.02, 8.02, 8.02, 8.23, 8.23, 7.4, 7.98, 8.23, 7.4, 7.98], [7.92, 7.92, 7.92, 7.92, 8.17, 8.17, 8.17, 8.17, 8.17, 7.9, 7.9, 7.9], [7.84, 7.84, 7.84, 7.84, 7.84, 8.06, 8.06, 8.06, 7.08, 7.08, 7.84, 7.84]], "phase_counts": [22, 6, 19, 35, 24, 38], "synchrony": 0.062}, {"step": 33, "avg_yield": 7.904957265993265, "min_yield": 5.801090909090909, "max_yield": 8.4968, "avg_pest_loss": 0.09055555555555557, "avg_water_loss": 0.06965488215488216, "phases": [[4, 5, 5, 5, 5, 1, 1, 1, 0, 5, 4, 4], [4, 5, 5, 5, 2, 2, 1, 1, 0, 5, 4, 4], [4, 5, 5, 2, 2, 2, 1, 1, 0, 3, 3, 3], [4, 4, 3, 2, 2, 2, 2, 2, 3, 3, 3, 3], [4, 4, 4, 0, 2, 2, 1, 2, 3, 3, 3, 3], [3, 4, 0, 0, 0, 1, 1, 1, 3, 3, 0, 3], [3, 2, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3], [2, 5, 5, 0, 0, 5, 0, 0, 0, 5, 3, 3], [5, 5, 5, 0, 5, 3, 4, 4, 5, 4, 5, 3], [5, 5, 5, 0, 4, 4, 4, 2, 4, 4, 4, 3], [5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 3, 3], [5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5], [8.44, 8.39, 8.39, 7.17, 7.26, 8.5, 8.44, 8.44, 8.48, 7.78, 8.44, 8.44], [8.37, 8.31, 7.1, 7.22, 8.46, 8.46, 8.39, 8.39, 7.22, 7.26, 8.5, 8.5], [8.35, 8.35, 7.82, 7.78, 8.39, 8.39, 8.39, 8.39, 7.82, 8.44, 8.44, 8.44], [8.31, 8.31, 7.1, 6.59, 7.08, 8.29, 8.35, 8.29, 8.33, 8.33, 7.72, 8.33], [8.25, 7.05, 7.19, 8.41, 7.8, 8.33, 8.33, 7.72, 7.05, 7.65, 5.96, 7.45], [8.17, 6.43, 7.72, 8.33, 8.33, 8.33, 8.27, 8.33, 7.12, 6.98, 7.57, 8.17], [6.61, 7.06, 8.27, 8.21, 8.21, 7.67, 7.61, 7.61, 8.21, 7.06, 6.91, 8.08], [7.39, 8.19, 8.19, 8.11, 7.59, 6.87, 7.63, 7.03, 8.19, 8.23, 6.99, 7.26], [8.06, 8.06, 8.06, 6.91, 7.57, 8.17, 7.57, 5.8, 7.57, 8.17, 8.17, 8.0], [8.0, 8.0, 8.0, 7.46, 8.04, 8.04, 8.04, 7.46, 8.04, 8.04, 7.98, 7.98], [7.94, 7.94, 7.94, 7.94, 7.9, 7.9, 7.9, 7.9, 7.9, 7.94, 7.94, 7.94]], "phase_counts": [21, 12, 16, 30, 34, 31], "synchrony": 0.034}, {"step": 34, "avg_yield": 7.831642410774411, "min_yield": 5.771903030303029, "max_yield": 8.4968, "avg_pest_loss": 0.10194444444444446, "avg_water_loss": 0.0739057239057239, "phases": [[2, 5, 5, 5, 5, 2, 1, 1, 3, 5, 4, 4], [4, 5, 5, 5, 2, 2, 4, 1, 0, 5, 4, 4], [4, 5, 5, 2, 2, 2, 2, 1, 0, 3, 3, 3], [4, 4, 4, 2, 2, 2, 2, 2, 3, 3, 3, 3], [4, 4, 4, 0, 2, 2, 2, 2, 3, 3, 3, 3], [4, 4, 0, 0, 0, 1, 1, 0, 3, 3, 3, 3], [3, 3, 0, 0, 0, 0, 1, 0, 0, 3, 3, 3], [3, 5, 5, 0, 0, 5, 1, 0, 0, 4, 3, 3], [5, 2, 5, 0, 0, 4, 4, 5, 4, 4, 4, 3], [5, 4, 5, 0, 0, 4, 4, 4, 5, 4, 4, 4], [5, 5, 5, 4, 4, 4, 4, 4, 4, 5, 4, 3], [5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 5, 3]], "yields": [[6.02, 7.67, 8.5, 8.5, 6.85, 7.67, 7.67, 7.67, 6.02, 7.67, 8.5, 8.5], [7.63, 8.39, 8.39, 7.17, 7.22, 7.84, 5.99, 7.84, 7.88, 7.78, 8.46, 8.46], [8.37, 8.31, 7.71, 7.19, 8.41, 8.41, 7.8, 8.44, 7.24, 7.24, 8.48, 8.48], [8.35, 8.35, 7.74, 7.12, 8.33, 8.33, 8.33, 8.33, 7.8, 8.41, 8.41, 8.41], [8.29, 8.29, 7.08, 6.61, 7.03, 8.23, 8.23, 7.63, 8.33, 8.33, 8.33, 8.33], [8.23, 7.63, 7.21, 8.44, 7.82, 8.41, 8.41, 7.21, 7.05, 8.25, 8.25, 8.25], [8.17, 6.98, 7.74, 8.35, 8.35, 8.35, 8.37, 8.35, 7.14, 7.57, 8.17, 8.17], [6.5, 6.46, 8.27, 8.23, 8.23, 7.67, 7.14, 8.23, 7.03, 7.59, 8.06, 8.06], [6.61, 5.77, 7.61, 8.15, 7.55, 7.57, 7.57, 8.21, 7.57, 8.17, 8.17, 8.0], [8.15, 7.48, 8.15, 7.51, 6.92, 7.48, 8.06, 8.06, 8.15, 8.06, 8.06, 8.06], [8.08, 8.08, 8.08, 7.34, 7.34, 7.92, 7.92, 7.92, 7.92, 8.08, 7.92, 7.98], [8.0, 8.0, 8.0, 8.0, 7.78, 7.78, 7.78, 7.78, 7.78, 7.78, 7.22, 6.8]], "phase_counts": [21, 8, 18, 27, 41, 29], "synchrony": 0.054}, {"step": 35, "avg_yield": 7.952169239057239, "min_yield": 6.00540606060606, "max_yield": 8.4968, "avg_pest_loss": 0.07916666666666668, "avg_water_loss": 0.07226430976430977, "phases": [[5, 5, 5, 5, 5, 2, 1, 1, 0, 4, 4, 4], [5, 5, 2, 5, 2, 2, 0, 1, 0, 4, 4, 4], [4, 5, 5, 4, 2, 2, 1, 1, 2, 3, 3, 3], [4, 4, 4, 3, 2, 2, 2, 1, 3, 3, 3, 3], [4, 4, 4, 0, 2, 1, 1, 2, 3, 3, 3, 3], [3, 4, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3], [4, 3, 4, 0, 0, 1, 1, 1, 0, 3, 3, 3], [3, 5, 5, 0, 1, 0, 1, 0, 0, 4, 3, 4], [5, 5, 5, 0, 0, 5, 5, 0, 5, 4, 4, 4], [5, 5, 5, 0, 0, 4, 4, 1, 5, 4, 4, 4], [5, 5, 5, 5, 4, 4, 4, 4, 5, 5, 5, 4], [5, 5, 5, 5, 5, 4, 4, 4, 4, 5, 4, 3]], "yields": [[8.5, 8.5, 7.67, 8.5, 6.85, 7.67, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5], [8.39, 7.78, 6.01, 7.17, 7.24, 7.86, 7.86, 8.46, 7.24, 7.82, 8.44, 8.44], [8.37, 8.33, 7.72, 7.76, 7.8, 8.41, 8.44, 8.44, 7.8, 8.5, 8.5, 8.5], [8.33, 8.33, 8.33, 7.82, 8.35, 8.35, 8.35, 7.78, 7.82, 8.44, 8.44, 8.44], [8.27, 8.27, 7.06, 6.59, 7.08, 8.37, 8.37, 8.29, 8.33, 8.33, 8.33, 8.33], [8.25, 7.61, 6.57, 8.41, 7.8, 8.33, 8.33, 7.72, 7.05, 8.25, 8.25, 8.25], [8.19, 7.55, 6.99, 7.74, 8.35, 8.27, 8.27, 8.27, 7.14, 7.55, 8.15, 8.15], [6.5, 7.08, 8.29, 8.29, 8.21, 8.29, 7.61, 8.29, 7.69, 7.55, 8.06, 8.15], [7.45, 8.25, 8.25, 8.21, 8.21, 8.25, 7.65, 8.21, 8.25, 8.11, 8.11, 8.11], [8.13, 8.13, 8.13, 8.15, 6.96, 7.46, 7.46, 6.38, 7.53, 8.04, 8.04, 8.04], [8.04, 8.04, 8.04, 8.04, 7.36, 7.94, 7.94, 7.36, 8.04, 8.04, 8.04, 7.94], [7.9, 7.9, 7.9, 7.9, 7.9, 7.84, 7.84, 7.84, 7.84, 7.9, 7.84, 8.02]], "phase_counts": [19, 17, 12, 24, 37, 35], "synchrony": 0.041}, {"step": 36, "avg_yield": 7.975575138047138, "min_yield": 5.932436363636364, "max_yield": 8.4968, "avg_pest_loss": 0.07416666666666669, "avg_water_loss": 0.07276936026936026, "phases": [[5, 5, 5, 4, 5, 1, 1, 1, 1, 4, 4, 4], [1, 5, 5, 5, 2, 2, 1, 1, 1, 3, 4, 4], [5, 4, 4, 3, 2, 1, 1, 1, 3, 3, 3, 3], [4, 4, 4, 2, 2, 2, 1, 0, 3, 3, 3, 3], [4, 4, 4, 0, 1, 1, 1, 1, 3, 3, 3, 3], [4, 4, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3], [2, 4, 5, 0, 0, 0, 1, 0, 1, 3, 3, 3], [4, 5, 5, 0, 0, 0, 0, 0, 0, 4, 3, 4], [5, 5, 5, 0, 5, 0, 5, 1, 5, 5, 4, 3], [5, 5, 5, 0, 0, 5, 4, 0, 5, 4, 4, 4], [5, 5, 5, 0, 5, 4, 4, 5, 5, 5, 5, 4], [5, 5, 5, 5, 5, 4, 4, 4, 5, 5, 5, 3]], "yields": [[7.26, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5], [5.96, 7.8, 8.41, 7.19, 7.26, 8.5, 8.41, 8.41, 7.19, 7.88, 8.41, 8.41], [7.54, 8.37, 8.37, 7.86, 8.46, 8.33, 8.33, 7.72, 7.24, 8.48, 8.48, 8.48], [8.33, 8.33, 7.72, 7.21, 8.44, 8.44, 8.27, 7.88, 7.76, 8.37, 8.37, 8.37], [8.27, 8.27, 7.06, 7.24, 8.25, 8.25, 8.25, 7.65, 7.69, 8.29, 8.29, 8.29], [7.41, 7.61, 7.22, 8.46, 8.46, 8.17, 8.17, 7.57, 7.01, 8.21, 8.21, 8.21], [5.93, 7.57, 8.33, 8.39, 8.39, 8.39, 8.11, 8.39, 6.92, 7.53, 8.13, 8.13], [7.36, 8.31, 8.31, 8.31, 8.31, 8.31, 8.31, 8.31, 7.71, 7.55, 8.06, 8.15], [8.27, 8.27, 8.27, 8.19, 8.27, 8.19, 7.67, 6.89, 7.67, 8.27, 8.08, 8.04], [8.13, 8.13, 8.13, 8.15, 8.15, 8.13, 7.48, 7.55, 8.13, 8.06, 8.06, 8.06], [8.02, 8.02, 8.02, 8.08, 8.02, 7.98, 7.98, 8.02, 8.02, 8.02, 8.02, 7.98], [7.86, 7.86, 7.86, 7.86, 7.86, 7.92, 7.92, 7.92, 7.86, 7.86, 7.09, 6.85]], "phase_counts": [21, 22, 7, 24, 31, 39], "synchrony": 0.052}, {"step": 37, "avg_yield": 7.8949633131313135, "min_yield": 5.742715151515151, "max_yield": 8.4968, "avg_pest_loss": 0.09055555555555557, "avg_water_loss": 0.07222222222222223, "phases": [[5, 5, 5, 4, 4, 2, 1, 1, 1, 4, 4, 4], [5, 5, 5, 4, 2, 2, 1, 1, 1, 4, 4, 4], [4, 4, 5, 2, 2, 2, 1, 1, 1, 3, 3, 3], [4, 4, 4, 2, 2, 2, 2, 1, 3, 3, 3, 3], [4, 4, 2, 0, 0, 2, 1, 1, 3, 3, 3, 3], [4, 4, 0, 0, 0, 0, 1, 5, 3, 4, 3, 3], [4, 5, 3, 0, 0, 0, 0, 0, 0, 3, 3, 3], [3, 5, 5, 0, 0, 0, 0, 0, 0, 5, 4, 4], [5, 5, 5, 0, 0, 0, 1, 2, 5, 5, 5, 4], [5, 5, 5, 0, 5, 0, 5, 5, 3, 5, 4, 4], [5, 5, 5, 0, 0, 5, 5, 5, 5, 4, 4, 4], [5, 5, 5, 0, 5, 4, 4, 5, 5, 5, 5, 4]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5], [8.44, 8.44, 8.44, 7.17, 7.24, 8.48, 8.44, 8.44, 7.82, 7.78, 8.39, 8.39], [8.31, 8.31, 7.76, 7.21, 8.44, 8.44, 8.37, 8.37, 7.15, 7.88, 8.5, 8.5], [8.27, 8.27, 7.06, 7.15, 7.76, 8.37, 8.37, 7.71, 7.21, 8.44, 8.44, 8.44], [8.21, 7.61, 5.87, 7.26, 7.26, 7.08, 8.29, 7.08, 7.74, 8.35, 8.35, 8.35], [8.17, 7.57, 6.61, 8.46, 8.46, 7.84, 7.65, 6.53, 7.06, 8.17, 8.27, 8.27], [8.11, 7.72, 5.82, 7.76, 8.37, 8.37, 8.37, 8.37, 7.15, 7.01, 8.21, 8.21], [6.55, 7.71, 7.71, 8.25, 8.25, 8.25, 8.25, 7.65, 8.25, 7.71, 8.08, 8.08], [7.45, 8.25, 8.25, 8.13, 8.13, 8.13, 7.63, 6.45, 7.05, 8.25, 8.25, 8.04], [8.13, 8.13, 8.13, 8.06, 8.13, 8.06, 7.53, 6.94, 5.74, 7.53, 8.02, 8.02], [7.98, 7.98, 7.98, 8.02, 8.02, 7.98, 7.98, 7.98, 7.4, 7.98, 7.98, 7.98], [7.84, 7.84, 7.84, 7.98, 7.84, 7.92, 7.92, 7.84, 7.84, 7.84, 7.84, 7.92]], "phase_counts": [26, 14, 13, 20, 31, 40], "synchrony": 0.044}, {"step": 38, "avg_yield": 7.8725569831649835, "min_yield": 5.859466666666666, "max_yield": 8.4968, "avg_pest_loss": 0.09277777777777779, "avg_water_loss": 0.0755892255892256, "phases": [[5, 5, 5, 4, 4, 1, 1, 0, 1, 4, 4, 4], [5, 5, 5, 4, 2, 2, 1, 1, 1, 4, 4, 4], [5, 5, 5, 2, 2, 2, 1, 1, 1, 3, 3, 3], [4, 4, 4, 2, 2, 2, 2, 1, 0, 3, 5, 3], [4, 4, 4, 0, 0, 2, 2, 1, 3, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 4, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [4, 5, 5, 0, 0, 0, 0, 0, 0, 5, 5, 3], [5, 5, 5, 0, 0, 0, 0, 0, 0, 5, 5, 5], [5, 1, 5, 0, 5, 0, 3, 2, 5, 5, 5, 4], [5, 5, 5, 0, 5, 0, 5, 5, 5, 4, 4, 4], [5, 5, 5, 0, 0, 5, 5, 5, 5, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5], [8.44, 8.44, 8.44, 7.17, 7.26, 8.5, 8.44, 8.44, 7.82, 7.78, 8.39, 8.39], [8.37, 8.37, 7.76, 7.22, 8.46, 8.46, 8.37, 8.37, 7.76, 7.88, 7.88, 8.5], [8.31, 8.31, 7.71, 7.17, 7.78, 8.39, 8.39, 8.31, 7.24, 7.21, 5.89, 7.62], [8.25, 8.25, 7.05, 7.22, 7.22, 7.1, 7.71, 7.69, 7.17, 8.39, 7.78, 8.39], [8.19, 7.59, 7.19, 8.41, 8.41, 7.8, 7.8, 7.8, 6.99, 8.31, 8.31, 8.31], [8.13, 7.53, 7.69, 8.29, 8.29, 8.29, 8.29, 8.29, 7.08, 7.05, 7.65, 8.25], [8.08, 8.29, 8.29, 8.15, 8.15, 8.15, 8.15, 8.15, 8.15, 7.69, 7.08, 6.6], [8.21, 7.61, 8.21, 8.02, 8.02, 8.02, 7.44, 7.44, 8.02, 8.21, 8.21, 7.41], [7.3, 5.86, 7.5, 7.9, 8.08, 7.32, 6.38, 6.46, 7.5, 8.08, 8.08, 8.06], [7.96, 7.38, 7.96, 7.86, 7.96, 7.86, 7.38, 7.38, 7.96, 8.04, 8.04, 8.04], [7.82, 7.82, 7.82, 7.82, 7.82, 7.82, 7.82, 7.82, 7.82, 7.98, 7.98, 7.98]], "phase_counts": [35, 12, 12, 17, 28, 40], "synchrony": 0.06}, {"step": 39, "avg_yield": 7.936388094276094, "min_yield": 6.02, "max_yield": 8.4968, "avg_pest_loss": 0.07611111111111113, "avg_water_loss": 0.08114478114478114, "phases": [[5, 5, 5, 4, 4, 2, 1, 0, 0, 1, 4, 2], [5, 5, 5, 4, 2, 2, 1, 0, 1, 2, 4, 4], [5, 5, 5, 1, 2, 2, 2, 1, 1, 3, 3, 3], [5, 5, 4, 2, 2, 2, 2, 2, 1, 3, 3, 3], [4, 4, 4, 0, 0, 2, 2, 1, 3, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [4, 5, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [5, 5, 5, 0, 0, 0, 0, 0, 0, 5, 5, 3], [5, 5, 5, 5, 0, 0, 0, 0, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 0, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 1, 0, 5, 4, 5, 5, 4], [5, 5, 5, 0, 5, 0, 5, 5, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 8.5, 8.5, 7.67, 6.85, 6.02], [8.44, 8.44, 8.44, 7.21, 7.22, 8.46, 8.46, 8.46, 8.46, 7.84, 7.82, 7.62], [8.37, 8.37, 7.76, 7.19, 8.39, 8.39, 8.39, 8.41, 7.8, 7.88, 8.5, 8.5], [8.31, 8.31, 7.76, 7.12, 7.72, 8.33, 8.33, 8.33, 7.14, 7.82, 8.44, 8.44], [8.35, 8.35, 7.14, 7.21, 7.21, 7.03, 7.63, 7.72, 7.15, 8.37, 8.37, 8.37], [8.29, 7.69, 7.17, 8.39, 8.39, 7.78, 7.78, 7.78, 7.08, 8.29, 8.29, 8.29], [8.25, 8.27, 8.27, 8.27, 8.27, 8.27, 8.27, 8.27, 7.06, 7.01, 7.61, 8.21], [8.25, 8.25, 8.25, 8.13, 8.13, 8.13, 8.13, 8.13, 8.13, 7.65, 7.05, 6.56], [8.15, 8.15, 8.15, 8.15, 8.0, 8.0, 8.0, 8.0, 8.15, 8.15, 8.15, 7.36], [7.98, 7.98, 7.98, 7.98, 7.98, 7.4, 7.92, 7.98, 7.98, 7.98, 7.98, 7.98], [7.76, 7.76, 7.76, 7.76, 7.19, 7.1, 7.9, 7.76, 8.23, 7.76, 7.76, 8.23], [7.59, 7.59, 7.59, 7.88, 7.59, 7.88, 7.59, 7.59, 8.19, 8.19, 8.19, 8.19]], "phase_counts": [32, 10, 15, 18, 19, 50], "synchrony": 0.079}, {"step": 40, "avg_yield": 7.8307882020202015, "min_yield": 5.830278787878788, "max_yield": 8.4968, "avg_pest_loss": 0.0988888888888889, "avg_water_loss": 0.07954545454545454, "phases": [[5, 5, 5, 4, 2, 1, 1, 5, 0, 0, 4, 4], [5, 5, 5, 4, 2, 2, 1, 0, 0, 1, 3, 3], [5, 5, 5, 2, 2, 2, 1, 0, 1, 3, 3, 3], [5, 5, 5, 4, 2, 2, 2, 1, 2, 3, 3, 3], [4, 4, 4, 0, 0, 2, 4, 2, 3, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [4, 5, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [5, 2, 0, 0, 0, 0, 0, 0, 5, 5, 5, 3], [5, 5, 5, 5, 5, 0, 0, 5, 5, 5, 5, 5], [5, 5, 5, 5, 0, 0, 0, 0, 4, 5, 5, 4], [2, 5, 5, 5, 5, 0, 0, 4, 4, 0, 4, 4], [5, 5, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 7.67, 7.67, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.21, 7.86, 8.48, 8.46, 8.46, 8.46, 7.22, 7.88, 8.5], [8.35, 8.35, 7.74, 6.59, 8.44, 8.44, 8.41, 8.41, 7.8, 7.22, 8.46, 8.46], [8.29, 8.29, 8.29, 6.57, 7.15, 8.37, 7.76, 8.37, 8.37, 8.39, 8.39, 8.39], [8.39, 8.39, 7.17, 7.17, 7.17, 6.48, 5.95, 7.08, 8.33, 8.33, 8.33, 8.33], [8.31, 7.71, 7.14, 8.35, 8.35, 7.74, 7.74, 7.14, 7.05, 8.25, 8.25, 8.25], [8.27, 7.63, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 7.03, 6.98, 7.57, 8.17], [7.41, 5.84, 7.5, 8.08, 8.08, 8.08, 8.08, 8.08, 8.21, 7.61, 7.01, 6.53], [8.13, 7.53, 8.13, 8.13, 8.13, 7.96, 7.96, 8.13, 8.13, 8.13, 8.13, 7.34], [7.15, 7.92, 7.92, 7.92, 7.92, 7.92, 7.92, 6.77, 7.65, 7.92, 7.92, 8.25], [5.83, 7.23, 7.8, 7.8, 7.8, 7.84, 7.27, 7.01, 7.61, 6.12, 7.61, 8.21], [6.59, 7.71, 7.78, 7.78, 7.78, 7.78, 7.02, 7.34, 8.13, 7.34, 8.13, 8.13]], "phase_counts": [40, 7, 14, 20, 23, 40], "synchrony": 0.078}, {"step": 41, "avg_yield": 7.857554181818181, "min_yield": 5.874060606060605, "max_yield": 8.4968, "avg_pest_loss": 0.09250000000000001, "avg_water_loss": 0.08042929292929293, "phases": [[5, 5, 5, 5, 1, 1, 1, 0, 0, 0, 4, 4], [5, 5, 5, 5, 2, 1, 2, 0, 0, 0, 3, 3], [5, 5, 5, 2, 2, 2, 1, 0, 0, 3, 3, 3], [4, 1, 5, 5, 2, 2, 1, 0, 3, 3, 3, 3], [4, 4, 4, 0, 0, 2, 0, 1, 2, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [4, 5, 0, 0, 0, 0, 0, 1, 5, 1, 5, 3], [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4], [5, 5, 5, 5, 5, 0, 0, 5, 5, 4, 4, 4], [5, 5, 5, 5, 0, 0, 0, 4, 4, 5, 4, 1], [5, 0, 5, 5, 5, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.88, 8.44, 7.88, 7.82, 8.44, 7.21, 7.88, 8.5], [8.33, 7.72, 7.72, 6.61, 8.46, 8.46, 8.41, 8.37, 7.15, 7.22, 8.46, 8.46], [7.63, 5.95, 7.67, 7.06, 7.17, 8.39, 8.39, 7.72, 7.17, 8.39, 8.39, 8.39], [8.44, 7.82, 7.21, 7.71, 7.1, 6.53, 7.71, 8.35, 8.35, 8.31, 8.31, 8.31], [8.37, 7.76, 7.05, 8.25, 8.25, 7.65, 8.25, 7.65, 7.05, 8.25, 8.25, 8.25], [8.33, 7.72, 7.53, 8.13, 8.13, 8.13, 8.13, 8.13, 6.94, 6.98, 7.57, 8.17], [8.29, 8.23, 7.98, 7.98, 7.98, 7.98, 7.98, 7.12, 7.03, 5.9, 6.43, 7.32], [8.17, 8.17, 8.17, 8.17, 8.17, 8.17, 8.17, 7.57, 8.17, 7.57, 8.17, 8.27], [7.94, 7.94, 7.94, 7.94, 7.94, 7.88, 7.88, 7.94, 7.94, 8.25, 8.25, 7.45], [7.8, 7.8, 7.8, 7.8, 7.84, 7.84, 7.27, 7.59, 8.19, 7.8, 7.59, 5.87], [7.69, 7.78, 7.69, 7.69, 7.69, 7.78, 7.02, 7.34, 8.13, 8.13, 8.13, 6.94]], "phase_counts": [38, 11, 9, 20, 23, 43], "synchrony": 0.079}, {"step": 42, "avg_yield": 7.926779259259259, "min_yield": 5.742715151515151, "max_yield": 8.4968, "avg_pest_loss": 0.08055555555555557, "avg_water_loss": 0.07819865319865321, "phases": [[5, 5, 5, 5, 1, 1, 1, 0, 0, 0, 4, 4], [5, 5, 5, 5, 2, 3, 1, 0, 0, 0, 3, 3], [5, 5, 5, 2, 2, 2, 2, 1, 0, 3, 3, 3], [4, 4, 5, 0, 2, 2, 1, 1, 3, 3, 3, 3], [5, 4, 4, 0, 0, 2, 1, 1, 2, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 1, 2, 3, 3, 3], [4, 4, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3], [4, 4, 5, 5, 5, 5, 5, 0, 5, 5, 5, 4], [4, 5, 5, 5, 1, 5, 5, 5, 5, 4, 4, 4], [5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4], [5, 5, 5, 5, 5, 0, 0, 4, 4, 4, 4, 4], [5, 3, 5, 5, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 7.67, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.88, 7.26, 7.82, 8.44, 8.44, 7.21, 7.88, 8.5], [8.33, 8.33, 7.72, 6.62, 8.48, 8.48, 8.48, 8.41, 7.15, 7.21, 8.44, 8.44], [8.46, 8.46, 8.27, 7.14, 7.17, 8.39, 8.39, 7.78, 7.15, 8.37, 8.37, 8.37], [8.25, 8.41, 7.19, 7.72, 7.12, 7.14, 8.35, 8.35, 8.35, 8.29, 8.29, 8.29], [8.37, 7.76, 7.08, 8.29, 8.29, 7.69, 8.29, 8.31, 7.71, 8.23, 8.23, 8.23], [8.33, 7.72, 7.59, 8.19, 8.19, 8.19, 8.19, 8.19, 6.99, 6.98, 7.57, 8.17], [8.29, 8.29, 8.23, 8.23, 7.63, 8.23, 8.23, 8.04, 8.23, 7.63, 7.63, 8.29], [8.23, 8.06, 8.06, 7.48, 5.87, 7.48, 8.06, 8.06, 8.06, 8.23, 8.23, 8.23], [7.92, 7.92, 7.92, 7.92, 7.34, 7.92, 7.92, 7.92, 8.15, 8.15, 8.15, 8.15], [7.76, 7.19, 7.76, 7.76, 7.76, 8.02, 7.44, 7.48, 8.06, 8.06, 8.06, 8.06], [6.54, 5.74, 6.91, 7.65, 7.98, 7.98, 7.21, 7.19, 7.96, 7.96, 7.96, 7.96]], "phase_counts": [28, 11, 10, 20, 31, 44], "synchrony": 0.07}, {"step": 43, "avg_yield": 7.893260107744108, "min_yield": 5.7864969696969695, "max_yield": 8.4968, "avg_pest_loss": 0.08583333333333336, "avg_water_loss": 0.07996632996632996, "phases": [[5, 5, 5, 5, 2, 1, 1, 0, 0, 0, 4, 4], [5, 5, 5, 5, 2, 2, 1, 0, 0, 5, 3, 3], [4, 4, 5, 2, 2, 2, 2, 2, 0, 3, 3, 3], [4, 4, 4, 5, 2, 2, 2, 1, 3, 3, 3, 3], [4, 4, 4, 0, 0, 2, 1, 1, 1, 3, 3, 3], [4, 4, 0, 0, 0, 0, 1, 1, 2, 3, 0, 3], [4, 4, 5, 0, 0, 5, 0, 1, 5, 3, 3, 4], [4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 4, 4], [4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4], [4, 5, 5, 5, 5, 0, 5, 4, 4, 4, 4, 4], [5, 5, 5, 5, 0, 0, 0, 4, 4, 4, 4, 4], [5, 5, 5, 1, 0, 3, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.86, 8.48, 8.46, 7.82, 8.44, 7.19, 7.88, 8.5], [8.46, 8.46, 7.71, 6.59, 8.44, 8.44, 8.44, 7.21, 6.56, 7.22, 8.46, 8.46], [8.41, 8.41, 8.41, 7.08, 7.12, 8.33, 8.33, 7.82, 6.56, 8.39, 8.39, 8.39], [8.35, 8.35, 7.14, 7.76, 7.15, 7.06, 8.41, 8.41, 7.19, 7.71, 7.71, 8.31], [8.29, 7.69, 7.12, 8.33, 8.33, 7.72, 8.35, 8.35, 7.65, 7.65, 5.9, 7.45], [8.25, 8.25, 8.27, 8.23, 8.23, 8.27, 8.23, 7.1, 6.46, 7.61, 7.61, 8.25], [8.19, 8.19, 8.19, 8.21, 8.21, 8.21, 8.21, 7.61, 8.21, 8.19, 8.19, 8.19], [8.06, 8.06, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.08, 8.06, 8.06, 8.06], [7.96, 7.94, 7.94, 7.94, 7.94, 8.17, 7.94, 7.96, 7.96, 7.96, 7.96, 7.96], [7.84, 7.84, 7.84, 7.27, 8.15, 7.55, 7.55, 7.27, 7.84, 7.84, 7.84, 7.84], [7.76, 7.76, 7.0, 6.68, 7.3, 5.79, 6.51, 6.98, 7.73, 7.73, 7.73, 7.73]], "phase_counts": [22, 11, 13, 17, 42, 39], "synchrony": 0.07}, {"step": 44, "avg_yield": 7.936334235690236, "min_yield": 5.801090909090909, "max_yield": 8.4968, "avg_pest_loss": 0.07861111111111113, "avg_water_loss": 0.07786195286195287, "phases": [[5, 5, 5, 5, 1, 1, 1, 0, 0, 0, 4, 4], [5, 5, 5, 5, 2, 1, 1, 0, 0, 0, 3, 3], [4, 4, 4, 2, 2, 2, 1, 2, 0, 3, 3, 3], [4, 4, 4, 4, 2, 2, 2, 1, 3, 3, 3, 3], [4, 4, 4, 0, 0, 1, 1, 1, 1, 3, 3, 3], [4, 4, 0, 0, 0, 1, 1, 1, 1, 3, 3, 3], [4, 5, 5, 0, 0, 0, 1, 1, 5, 4, 4, 4], [4, 4, 5, 0, 0, 5, 0, 5, 5, 5, 4, 4], [4, 4, 4, 5, 5, 5, 3, 5, 5, 4, 4, 4], [4, 4, 5, 5, 0, 0, 0, 5, 5, 4, 4, 4], [2, 5, 5, 0, 0, 0, 5, 4, 4, 4, 4, 4], [5, 5, 5, 0, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.88, 8.44, 8.44, 7.82, 8.44, 7.21, 7.88, 8.5], [8.46, 8.46, 7.84, 6.62, 8.48, 8.48, 8.39, 7.24, 6.54, 7.22, 8.46, 8.46], [8.39, 8.39, 8.39, 6.56, 7.17, 8.39, 8.39, 7.76, 6.56, 8.39, 8.39, 8.39], [8.31, 8.31, 7.1, 7.14, 7.74, 8.35, 8.35, 8.35, 7.14, 7.71, 8.31, 8.31], [8.25, 7.65, 7.1, 8.31, 8.31, 8.27, 8.27, 8.27, 7.06, 7.65, 8.25, 8.25], [8.21, 8.33, 8.33, 8.25, 8.25, 8.25, 8.19, 6.99, 7.12, 8.21, 8.21, 8.21], [8.13, 8.13, 8.27, 8.19, 8.19, 8.27, 7.59, 7.67, 8.27, 8.27, 8.13, 8.13], [8.04, 8.04, 8.04, 8.17, 8.17, 7.57, 5.8, 7.57, 8.17, 8.04, 8.04, 8.04], [7.15, 7.92, 8.06, 8.06, 8.13, 8.13, 7.53, 8.06, 8.06, 7.92, 7.92, 7.92], [5.9, 7.4, 7.98, 8.06, 8.06, 8.06, 7.98, 7.82, 7.82, 7.82, 7.82, 7.82], [6.77, 7.92, 7.92, 8.0, 8.0, 8.0, 7.22, 6.96, 7.71, 7.71, 7.71, 7.71]], "phase_counts": [28, 17, 9, 16, 43, 31], "synchrony": 0.063}, {"step": 45, "avg_yield": 7.947800323232324, "min_yield": 5.7864969696969695, "max_yield": 8.4968, "avg_pest_loss": 0.07694444444444445, "avg_water_loss": 0.0768939393939394, "phases": [[5, 5, 5, 5, 1, 1, 1, 0, 1, 0, 4, 4], [5, 5, 5, 5, 2, 1, 1, 0, 0, 0, 3, 3], [4, 4, 4, 2, 2, 2, 5, 1, 0, 3, 3, 3], [4, 4, 4, 4, 2, 2, 2, 2, 3, 3, 3, 3], [4, 4, 4, 0, 1, 2, 2, 1, 1, 3, 3, 3], [4, 5, 5, 0, 0, 1, 1, 1, 1, 3, 3, 3], [5, 5, 5, 5, 0, 1, 2, 1, 5, 5, 3, 3], [4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4], [4, 4, 5, 0, 0, 5, 0, 5, 5, 5, 1, 4], [4, 5, 5, 5, 5, 0, 0, 5, 5, 5, 4, 4], [5, 5, 5, 0, 0, 0, 0, 5, 5, 4, 4, 4], [5, 5, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.88, 8.41, 7.8, 8.46, 8.46, 7.22, 7.88, 8.5], [8.46, 8.46, 7.84, 6.62, 8.48, 7.86, 5.9, 7.76, 7.17, 7.22, 8.46, 8.46], [8.39, 8.39, 8.39, 6.56, 7.8, 8.41, 7.8, 8.41, 7.17, 8.39, 8.39, 8.39], [8.31, 8.31, 7.71, 7.15, 8.35, 8.33, 8.33, 8.35, 7.14, 7.71, 8.31, 8.31], [8.25, 8.31, 8.31, 8.35, 8.35, 8.29, 8.29, 8.29, 7.08, 7.05, 8.25, 8.25], [8.27, 8.27, 8.27, 8.27, 8.31, 7.61, 7.69, 7.01, 7.06, 7.06, 6.99, 8.19], [8.23, 8.15, 8.15, 8.15, 8.15, 7.55, 7.55, 7.55, 8.15, 8.15, 6.96, 8.23], [8.19, 8.19, 7.94, 8.29, 8.29, 7.94, 8.29, 7.94, 7.94, 7.36, 5.79, 7.39], [8.13, 7.84, 7.84, 7.84, 7.84, 8.23, 8.23, 7.84, 7.84, 7.84, 7.53, 8.13], [7.69, 7.69, 7.69, 8.19, 8.19, 8.19, 8.19, 7.69, 7.69, 8.06, 8.06, 8.06], [7.59, 7.59, 8.11, 8.11, 8.11, 8.11, 7.32, 7.22, 8.0, 8.0, 8.0, 8.0]], "phase_counts": [24, 17, 11, 17, 29, 46], "synchrony": 0.059}, {"step": 46, "avg_yield": 7.941637858585859, "min_yield": 5.932436363636364, "max_yield": 8.4968, "avg_pest_loss": 0.08000000000000002, "avg_water_loss": 0.07411616161616162, "phases": [[5, 5, 5, 5, 2, 2, 1, 0, 1, 1, 4, 4], [5, 5, 5, 5, 2, 1, 1, 0, 1, 0, 3, 3], [4, 4, 4, 2, 2, 2, 2, 0, 0, 3, 3, 3], [4, 4, 4, 4, 2, 2, 2, 2, 2, 3, 3, 1], [4, 4, 4, 0, 1, 2, 1, 2, 1, 3, 3, 3], [4, 5, 0, 0, 0, 0, 2, 1, 1, 3, 3, 3], [5, 5, 4, 0, 0, 0, 1, 1, 5, 5, 3, 3], [5, 5, 5, 0, 0, 5, 0, 5, 5, 5, 4, 4], [4, 4, 0, 0, 0, 0, 0, 0, 5, 5, 4, 4], [4, 4, 5, 0, 0, 0, 0, 0, 5, 4, 4, 4], [4, 5, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4], [5, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 8.5, 8.5, 8.5, 7.67, 7.67, 8.5], [8.41, 8.41, 8.41, 7.19, 7.84, 8.44, 8.44, 8.48, 8.44, 7.24, 7.88, 8.5], [8.46, 8.46, 7.84, 6.59, 8.44, 8.44, 7.82, 7.21, 7.21, 7.22, 8.46, 7.63], [8.39, 8.39, 8.39, 6.56, 7.74, 8.35, 8.35, 7.74, 7.74, 8.39, 7.78, 5.93], [8.31, 8.31, 7.1, 7.17, 8.35, 7.65, 8.35, 8.25, 7.74, 7.74, 8.35, 7.54], [8.25, 8.33, 7.15, 8.37, 8.37, 7.15, 7.61, 8.29, 7.08, 7.08, 8.29, 8.29], [8.31, 8.31, 7.03, 7.69, 8.29, 8.29, 8.25, 7.05, 7.1, 7.1, 7.63, 8.23], [8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 8.23, 7.63, 8.23, 8.23, 8.21, 8.21], [8.17, 7.57, 7.57, 8.17, 8.17, 8.17, 8.17, 8.17, 8.08, 8.08, 8.17, 8.17], [8.08, 8.08, 8.04, 8.04, 8.04, 8.04, 8.04, 8.04, 8.04, 8.08, 8.08, 8.08], [7.98, 8.0, 7.94, 7.94, 7.94, 7.94, 7.94, 6.78, 7.4, 7.98, 7.98, 7.98], [7.98, 7.82, 7.82, 7.82, 7.82, 7.82, 7.06, 6.35, 7.88, 7.88, 7.88, 7.88]], "phase_counts": [39, 14, 15, 15, 35, 26], "synchrony": 0.049}, {"step": 47, "avg_yield": 7.861420996632996, "min_yield": 5.801090909090909, "max_yield": 8.4968, "avg_pest_loss": 0.09972222222222224, "avg_water_loss": 0.06860269360269361, "phases": [[5, 5, 5, 5, 2, 2, 3, 0, 1, 1, 0, 2], [5, 5, 5, 5, 2, 2, 1, 0, 1, 1, 3, 3], [4, 4, 4, 2, 2, 2, 1, 0, 1, 3, 3, 3], [4, 4, 4, 4, 2, 2, 2, 2, 3, 3, 3, 3], [2, 4, 4, 0, 0, 2, 1, 1, 2, 3, 3, 3], [0, 5, 0, 0, 0, 0, 1, 1, 3, 3, 1, 3], [5, 5, 5, 0, 1, 0, 0, 1, 5, 5, 3, 3], [5, 5, 5, 0, 0, 0, 1, 0, 5, 5, 5, 3], [5, 5, 5, 0, 0, 5, 0, 0, 5, 5, 4, 4], [4, 4, 4, 0, 0, 0, 0, 0, 5, 4, 4, 2], [4, 4, 5, 1, 0, 0, 0, 0, 5, 4, 4, 4], [3, 5, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4]], "yields": [[8.5, 8.5, 8.5, 7.67, 7.67, 8.5, 6.85, 7.67, 8.5, 8.5, 6.85, 7.26], [8.41, 8.41, 8.41, 7.19, 7.82, 8.44, 7.84, 8.46, 8.46, 7.22, 7.24, 8.48], [8.5, 8.5, 7.88, 6.56, 8.39, 8.39, 8.39, 7.82, 7.17, 7.21, 8.44, 8.44], [7.62, 8.44, 8.44, 6.59, 7.12, 8.33, 8.33, 7.72, 7.76, 8.37, 8.37, 8.37], [5.84, 7.74, 7.14, 7.19, 7.19, 7.05, 8.35, 8.35, 8.25, 8.29, 7.69, 8.29], [7.56, 8.33, 7.76, 8.37, 8.37, 7.76, 8.31, 7.71, 7.03, 7.03, 5.89, 7.43], [8.31, 8.31, 8.31, 8.27, 8.25, 8.27, 8.27, 7.65, 7.1, 7.1, 6.38, 8.17], [8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 8.21, 7.01, 7.34], [8.08, 8.08, 8.08, 8.13, 8.13, 8.08, 8.13, 8.13, 8.08, 8.08, 8.31, 7.5], [8.27, 8.27, 7.67, 7.46, 8.04, 8.04, 8.04, 8.04, 7.96, 8.27, 7.67, 5.8], [8.17, 8.17, 7.36, 7.59, 7.94, 7.94, 7.94, 7.36, 7.94, 8.17, 8.17, 7.37], [6.92, 7.13, 7.86, 7.86, 7.86, 7.86, 7.09, 6.5, 8.06, 8.06, 8.06, 8.06]], "phase_counts": [36, 16, 16, 20, 26, 30], "synchrony": 0.026}, {"step": 48, "avg_yield": 7.853455717171717, "min_yield": 5.742715151515151, "max_yield": 8.4968, "avg_pest_loss": 0.10083333333333336, "avg_water_loss": 0.0691919191919192, "phases": [[1, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 3], [5, 3, 3, 5, 2, 2, 0, 0, 1, 1, 3, 3], [4, 4, 4, 2, 2, 2, 1, 0, 1, 3, 3, 3], [4, 4, 4, 4, 2, 2, 1, 1, 3, 3, 3, 3], [4, 4, 4, 0, 0, 1, 1, 1, 1, 3, 3, 3], [5, 5, 0, 0, 0, 0, 1, 1, 2, 3, 4, 3], [5, 5, 1, 0, 0, 0, 1, 0, 5, 5, 3, 3], [5, 5, 5, 3, 1, 1, 0, 0, 5, 5, 4, 3], [4, 4, 5, 0, 0, 0, 1, 0, 5, 4, 4, 4], [4, 4, 5, 0, 0, 5, 0, 0, 4, 4, 4, 4], [4, 4, 4, 0, 0, 0, 0, 0, 4, 4, 4, 4], [3, 4, 2, 0, 0, 0, 0, 4, 5, 4, 4, 4]], "yields": [[6.02, 6.85, 7.67, 7.67, 7.67, 8.5, 7.67, 8.5, 8.5, 8.5, 6.85, 7.26], [6.8, 7.24, 7.24, 6.59, 7.82, 7.82, 7.26, 8.5, 8.39, 7.17, 7.24, 8.48], [8.5, 8.5, 7.88, 6.56, 8.39, 8.39, 8.35, 8.46, 7.14, 7.17, 8.39, 8.39], [8.44, 8.44, 8.44, 6.59, 7.12, 8.33, 8.31, 7.71, 6.51, 8.33, 8.33, 8.33], [8.35, 8.35, 7.14, 7.21, 7.82, 8.27, 8.27, 8.27, 7.06, 7.65, 8.25, 8.25], [8.39, 8.39, 7.78, 8.39, 8.39, 8.39, 8.19, 8.19, 7.69, 7.59, 8.29, 8.19], [8.35, 7.74, 6.96, 7.71, 8.31, 8.31, 8.15, 8.31, 7.74, 7.14, 7.55, 8.15], [8.27, 8.27, 7.06, 5.74, 7.51, 8.11, 8.23, 8.23, 8.27, 8.27, 8.27, 8.11], [8.25, 8.25, 8.17, 7.59, 8.19, 8.19, 8.06, 8.19, 8.17, 8.25, 8.25, 8.25], [8.15, 8.15, 8.13, 8.11, 8.11, 8.13, 8.11, 7.51, 7.55, 8.15, 8.15, 8.15], [8.02, 8.02, 6.85, 7.44, 8.02, 8.02, 8.02, 6.85, 7.44, 8.02, 8.02, 8.02], [8.06, 7.11, 5.86, 7.15, 7.92, 7.92, 7.15, 6.35, 8.08, 7.88, 7.88, 7.88]], "phase_counts": [32, 22, 12, 22, 35, 21], "synchrony": 0.029}, {"step": 49, "avg_yield": 7.893385198653198, "min_yield": 5.844872727272727, "max_yield": 8.4968, "avg_pest_loss": 0.08722222222222224, "avg_water_loss": 0.07781986531986533, "phases": [[5, 5, 5, 5, 2, 2, 2, 1, 1, 1, 1, 3], [4, 4, 4, 2, 2, 2, 0, 0, 1, 1, 4, 3], [4, 4, 4, 2, 2, 2, 0, 0, 5, 3, 3, 3], [4, 4, 4, 4, 2, 2, 1, 1, 3, 3, 3, 3], [4, 4, 4, 0, 0, 0, 1, 1, 1, 3, 3, 3], [5, 5, 5, 0, 0, 0, 0, 0, 1, 4, 5, 4], [5, 5, 0, 0, 0, 0, 0, 0, 0, 5, 4, 3], [5, 5, 5, 0, 0, 0, 0, 0, 5, 5, 4, 4], [5, 5, 4, 0, 2, 0, 0, 0, 5, 1, 4, 4], [4, 4, 5, 5, 0, 4, 5, 0, 5, 4, 4, 4], [4, 4, 5, 0, 0, 5, 0, 0, 5, 4, 4, 4], [3, 0, 0, 0, 0, 0, 0, 5, 5, 5, 4, 4]], "yields": [[8.5, 8.5, 8.5, 6.85, 7.67, 8.5, 7.67, 8.5, 8.5, 8.5, 6.85, 7.26], [8.5, 8.5, 7.88, 7.21, 8.44, 7.82, 7.26, 8.5, 7.8, 7.19, 7.26, 8.48], [8.41, 8.41, 7.8, 7.15, 8.37, 7.76, 7.84, 8.46, 6.57, 7.22, 8.46, 8.46], [8.35, 8.35, 8.35, 6.53, 7.1, 7.71, 8.37, 7.76, 6.56, 8.39, 8.39, 8.39], [8.27, 8.27, 7.67, 7.19, 7.8, 7.8, 8.33, 8.33, 7.12, 7.71, 7.71, 8.31], [8.39, 8.39, 8.39, 8.35, 8.35, 8.35, 8.35, 8.35, 7.67, 7.61, 7.78, 8.21], [8.31, 8.31, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.31, 8.17, 8.25], [8.25, 8.25, 8.25, 8.11, 7.51, 8.11, 8.11, 8.11, 8.25, 7.65, 8.15, 8.15], [8.15, 8.15, 7.51, 6.84, 5.86, 6.84, 8.0, 8.0, 7.55, 5.84, 7.51, 8.11], [8.04, 8.04, 8.08, 8.08, 6.77, 6.87, 8.08, 7.92, 8.08, 7.46, 8.04, 8.04], [7.92, 7.34, 8.0, 7.88, 7.88, 8.0, 7.88, 7.88, 8.0, 7.92, 7.92, 7.92], [7.03, 6.28, 7.8, 7.8, 7.8, 7.8, 7.8, 7.94, 7.94, 7.94, 7.82, 7.82]], "phase_counts": [40, 13, 12, 14, 35, 30], "synchrony": 0.064}];
+const GRID_SIZE = 12;
+const N_PHASES = 6;
+const Y_MAX = 8.6;
+
+// Miratuku CI-based phase colors
+const PHASE_COLORS = [
+  '#7A4033', // Phase 0: seedbed / nursery (deep brown)
+  '#B07256', // Phase 1: transplanting (amber brown)
+  '#CEA26F', // Phase 2: vegetative growth (camel)
+  '#F0BE83', // Phase 3: flowering (sand gold)
+  '#F2C792', // Phase 4: grain filling (light beige)
+  '#F8CDAC', // Phase 5: harvest / fallow (pale peach)
+];
+
+const PHASE_NAMES = [
+  '苗代・育苗',
+  '田植え',
+  '生育期',
+  '開花期',
+  '登熟期',
+  '収穫・休耕',
+];
+
+const RITUAL_NAMES = [
+  'ヌガク（苗代の儀礼）',
+  'ヌダプ（移植の祈り）',
+  'ニャピ・スバック（浄化）',
+  'パンリプラン（開花祭）',
+  'マングン（感謝の儀礼）',
+  'マパグ（収穫感謝祭）',
+];
+
+let currentStep = 0;
+let playing = false;
+let playInterval = null;
+
+function init() {
+  buildGrid('phase-grid');
+  buildGrid('yield-grid');
+  buildPhaseLegend();
+  buildCalendarLegend();
+  renderStep(0);
+  drawCharts();
+}
+
+function buildGrid(id) {
+  const container = document.getElementById(id);
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `${id}-${r}-${c}`;
+      const tip = document.createElement('div');
+      tip.className = 'tooltip';
+      cell.appendChild(tip);
+      container.appendChild(cell);
+    }
+  }
+}
+
+function buildPhaseLegend() {
+  const legend = document.getElementById('phase-legend');
+  for (let i = 0; i < N_PHASES; i++) {
+    const item = document.createElement('div');
+    item.className = 'phase-legend-item';
+    const swatch = document.createElement('div');
+    swatch.className = 'phase-swatch';
+    swatch.style.background = PHASE_COLORS[i];
+    const label = document.createElement('span');
+    label.className = 'phase-label-text';
+    label.textContent = PHASE_NAMES[i];
+    item.appendChild(swatch);
+    item.appendChild(label);
+    legend.appendChild(item);
+  }
+}
+
+function buildCalendarLegend() {
+  const legend = document.getElementById('cal-legend');
+  for (let i = 0; i < N_PHASES; i++) {
+    const item = document.createElement('div');
+    item.className = 'calendar-legend-item';
+    const dot = document.createElement('div');
+    dot.className = 'chart-dot';
+    dot.style.background = PHASE_COLORS[i];
+    const label = document.createElement('span');
+    label.textContent = PHASE_NAMES[i];
+    item.appendChild(dot);
+    item.appendChild(label);
+    legend.appendChild(item);
+  }
+}
+
+function renderStep(step) {
+  const d = DATA[step];
+  currentStep = step;
+
+  document.getElementById('step-label').textContent = `第${step}年`;
+  document.getElementById('slider').value = step;
+
+  // Stats
+  document.getElementById('stat-yield').textContent = d.avg_yield.toFixed(2);
+  document.getElementById('stat-pest').textContent = (d.avg_pest_loss * 100).toFixed(1) + '%';
+  document.getElementById('stat-water').textContent = (d.avg_water_loss * 100).toFixed(1) + '%';
+  document.getElementById('stat-sync').textContent = (d.synchrony * 100).toFixed(0) + '%';
+  document.getElementById('stat-efficiency').textContent = ((d.avg_yield / Y_MAX) * 100).toFixed(1) + '%';
+
+  // Phase grid
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const phase = d.phases[r][c];
+      const yld = d.yields[r][c];
+      const cell = document.getElementById(`phase-grid-${r}-${c}`);
+      cell.style.background = PHASE_COLORS[phase];
+      cell.querySelector('.tooltip').textContent =
+        `スバック(${r},${c}) ${PHASE_NAMES[phase]} 収量:${yld}t/ha`;
+    }
+  }
+
+  // Yield grid with Miratuku earth tones
+  const yieldColors = [
+    [176, 114, 86],   // low: amber brown
+    [206, 162, 111],  // mid-low: camel
+    [240, 190, 131],  // mid: sand gold
+    [242, 199, 146],  // mid-high: light beige
+    [248, 205, 172],  // high: pale peach
+  ];
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const yld = d.yields[r][c];
+      const ratio = Math.max(0, Math.min(1, yld / Y_MAX));
+      const idx = ratio * (yieldColors.length - 1);
+      const lo = Math.floor(idx);
+      const hi = Math.min(lo + 1, yieldColors.length - 1);
+      const t = idx - lo;
+      const r2 = Math.round(yieldColors[lo][0] * (1 - t) + yieldColors[hi][0] * t);
+      const g2 = Math.round(yieldColors[lo][1] * (1 - t) + yieldColors[hi][1] * t);
+      const b2 = Math.round(yieldColors[lo][2] * (1 - t) + yieldColors[hi][2] * t);
+      const cell = document.getElementById(`yield-grid-${r}-${c}`);
+      cell.style.background = `rgb(${r2},${g2},${b2})`;
+      cell.querySelector('.tooltip').textContent = `スバック(${r},${c}) 収量:${yld}t/ha`;
+    }
+  }
+
+  // Calendar ring
+  drawCalendarRing(d);
+
+  drawCharts();
+}
+
+function drawCalendarRing(d) {
+  const svg = document.getElementById('calendar-svg');
+  const cx = 160, cy = 160, outerR = 140, innerR = 80;
+  document.getElementById('cal-year').textContent = d.step;
+
+  let svgContent = '';
+  const total = GRID_SIZE * GRID_SIZE;
+  const counts = d.phase_counts;
+  let startAngle = -Math.PI / 2;
+
+  for (let i = 0; i < N_PHASES; i++) {
+    const fraction = counts[i] / total;
+    const endAngle = startAngle + fraction * 2 * Math.PI;
+
+    if (fraction > 0) {
+      const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
+      const x1o = cx + outerR * Math.cos(startAngle);
+      const y1o = cy + outerR * Math.sin(startAngle);
+      const x2o = cx + outerR * Math.cos(endAngle);
+      const y2o = cy + outerR * Math.sin(endAngle);
+      const x1i = cx + innerR * Math.cos(endAngle);
+      const y1i = cy + innerR * Math.sin(endAngle);
+      const x2i = cx + innerR * Math.cos(startAngle);
+      const y2i = cy + innerR * Math.sin(startAngle);
+
+      svgContent += `<path d="M${x1o},${y1o} A${outerR},${outerR} 0 ${largeArc},1 ${x2o},${y2o} L${x1i},${y1i} A${innerR},${innerR} 0 ${largeArc},0 ${x2i},${y2i} Z" fill="${PHASE_COLORS[i]}" stroke="#faf8f5" stroke-width="1.5"/>`;
+
+      // Ritual label on outside
+      const midAngle = (startAngle + endAngle) / 2;
+      const labelR = outerR + 8;
+      const lx = cx + labelR * Math.cos(midAngle);
+      const ly = cy + labelR * Math.sin(midAngle);
+      const deg = (midAngle * 180 / Math.PI);
+      const rotate = (deg > 90 || deg < -90) ? deg + 180 : deg;
+      const anchor = (deg > 90 || deg < -90) ? 'end' : 'start';
+
+      if (fraction > 0.06) {
+        svgContent += `<text x="${lx}" y="${ly}" font-size="8" fill="#966D5E" text-anchor="${anchor}" dominant-baseline="central" transform="rotate(${rotate},${lx},${ly})">${RITUAL_NAMES[i]}</text>`;
+      }
+
+      // Percentage inside arc
+      if (fraction > 0.04) {
+        const pctR = (outerR + innerR) / 2;
+        const px = cx + pctR * Math.cos(midAngle);
+        const py = cy + pctR * Math.sin(midAngle);
+        svgContent += `<text x="${px}" y="${py}" font-size="11" fill="#fff" text-anchor="middle" dominant-baseline="central" font-weight="400">${Math.round(fraction * 100)}%</text>`;
+      }
+    }
+    startAngle = endAngle;
+  }
+
+  // Inner circle
+  svgContent += `<circle cx="${cx}" cy="${cy}" r="${innerR - 1}" fill="#faf8f5"/>`;
+
+  svg.innerHTML = svgContent;
+}
+
+function drawCharts() {
+  drawYieldChart();
+  drawLossChart();
+}
+
+function drawYieldChart() {
+  const canvas = document.getElementById('yield-chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  ctx.scale(dpr, dpr);
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid lines
+  ctx.strokeStyle = '#ece5dd';
+  ctx.lineWidth = 1;
+  for (let y = 0; y <= Y_MAX; y += 2) {
+    const yy = pad.top + ph - (y / Y_MAX) * ph;
+    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
+    ctx.fillStyle = '#b0a090';
+    ctx.font = '11px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText(y.toFixed(0), pad.left - 6, yy + 4);
+  }
+
+  // Min/Max band
+  ctx.fillStyle = '#F8CDAC80';
+  ctx.beginPath();
+  for (let i = 0; i < DATA.length; i++) {
+    const x = pad.left + (i / (DATA.length - 1)) * pw;
+    const y = pad.top + ph - (DATA[i].max_yield / Y_MAX) * ph;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  for (let i = DATA.length - 1; i >= 0; i--) {
+    const x = pad.left + (i / (DATA.length - 1)) * pw;
+    const y = pad.top + ph - (DATA[i].min_yield / Y_MAX) * ph;
+    ctx.lineTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+
+  // Average line
+  ctx.strokeStyle = '#783c28';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i < DATA.length; i++) {
+    const x = pad.left + (i / (DATA.length - 1)) * pw;
+    const y = pad.top + ph - (DATA[i].avg_yield / Y_MAX) * ph;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Current marker
+  const cx2 = pad.left + (currentStep / (DATA.length - 1)) * pw;
+  ctx.strokeStyle = '#7A4033';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(cx2, pad.top); ctx.lineTo(cx2, pad.top + ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dot on current
+  const cy2 = pad.top + ph - (DATA[currentStep].avg_yield / Y_MAX) * ph;
+  ctx.fillStyle = '#783c28';
+  ctx.beginPath(); ctx.arc(cx2, cy2, 4, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawLossChart() {
+  const canvas = document.getElementById('loss-chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  ctx.scale(dpr, dpr);
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  ctx.strokeStyle = '#ece5dd';
+  ctx.lineWidth = 1;
+  for (let y = 0; y <= 0.5; y += 0.1) {
+    const yy = pad.top + ph - (y / 0.5) * ph;
+    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
+    ctx.fillStyle = '#b0a090';
+    ctx.font = '11px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText((y * 100).toFixed(0) + '%', pad.left - 6, yy + 4);
+  }
+
+  // Pest line
+  ctx.strokeStyle = '#DC8766';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i < DATA.length; i++) {
+    const x = pad.left + (i / (DATA.length - 1)) * pw;
+    const y = pad.top + ph - (DATA[i].avg_pest_loss / 0.5) * ph;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Water line
+  ctx.strokeStyle = '#CEA26F';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i < DATA.length; i++) {
+    const x = pad.left + (i / (DATA.length - 1)) * pw;
+    const y = pad.top + ph - (DATA[i].avg_water_loss / 0.5) * ph;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Current marker
+  const cx2 = pad.left + (currentStep / (DATA.length - 1)) * pw;
+  ctx.strokeStyle = '#7A4033';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(cx2, pad.top); ctx.lineTo(cx2, pad.top + ph); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function goToStep(step) { renderStep(step); }
+
+function togglePlay() {
+  if (playing) {
+    clearInterval(playInterval);
+    playing = false;
+    document.getElementById('btn-play').textContent = '再生';
+    document.getElementById('btn-play').classList.remove('active');
+  } else {
+    playing = true;
+    document.getElementById('btn-play').textContent = '一時停止';
+    document.getElementById('btn-play').classList.add('active');
+    playInterval = setInterval(() => {
+      if (currentStep >= DATA.length - 1) { togglePlay(); return; }
+      renderStep(currentStep + 1);
+    }, 500);
+  }
+}
+
+function resetSim() {
+  if (playing) togglePlay();
+  renderStep(0);
+}
+
+window.addEventListener('resize', drawCharts);
+init();
+</script>
+
+</body>
+</html>
