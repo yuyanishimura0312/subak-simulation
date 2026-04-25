@@ -3,747 +3,439 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スバック灌漑シミュレーション — 水と儀礼の自己組織化</title>
+<title>スバック灌漑シミュレーション — 三つのモデル</title>
 <style>
 :root {
-  --miratuku-golden-orange: #F0A671;
-  --miratuku-light-beige: #F2C792;
-  --miratuku-warm-beige: #F1C189;
-  --miratuku-camel: #CEA26F;
-  --miratuku-pale-peach: #F8CDAC;
-  --miratuku-sand-gold: #F0BE83;
-  --miratuku-soft-salmon: #EFC4A4;
-  --miratuku-rose-peach: #F7BEA2;
-  --miratuku-terracotta: #DC8766;
-  --miratuku-amber-brown: #B07256;
-  --miratuku-warm-brown: #966D5E;
-  --miratuku-deep-brown: #7A4033;
+  --m-golden-orange: #F0A671;
+  --m-light-beige: #F2C792;
+  --m-warm-beige: #F1C189;
+  --m-camel: #CEA26F;
+  --m-pale-peach: #F8CDAC;
+  --m-sand-gold: #F0BE83;
+  --m-soft-salmon: #EFC4A4;
+  --m-rose-peach: #F7BEA2;
+  --m-terracotta: #DC8766;
+  --m-amber-brown: #B07256;
+  --m-warm-brown: #966D5E;
+  --m-deep-brown: #7A4033;
   --accent: #783c28;
   --bg: #faf8f5;
   --text: #1a1a1a;
-  --text-secondary: #6b5d53;
+  --text2: #6b5d53;
   --border: #e8ddd4;
-  --card-bg: #fff;
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --card: #fff;
+  --ff: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--ff); background:var(--bg); color:var(--text); line-height:1.8; }
+.container { max-width:1100px; margin:0 auto; padding:48px 24px 80px; }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+.header { margin-bottom:48px; border-bottom:2px solid var(--m-camel); padding-bottom:32px; }
+.header h1 { font-size:32px; font-weight:400; color:var(--accent); margin-bottom:8px; }
+.header .sub { font-size:15px; color:var(--text2); }
 
-body {
-  font-family: var(--font-family);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.8;
-}
+.section { margin-bottom:56px; }
+.section-title { font-size:20px; font-weight:500; color:var(--accent); margin-bottom:16px; padding-left:12px; border-left:3px solid var(--m-terracotta); }
+.model-badge { display:inline-block; font-size:11px; font-weight:600; color:#fff; background:var(--accent); border-radius:4px; padding:2px 8px; margin-right:8px; vertical-align:middle; }
+.model-badge.m2 { background:var(--m-terracotta); }
+.model-badge.m3 { background:var(--m-amber-brown); }
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 48px 24px 80px;
-}
+.prose { font-size:15px; line-height:2; margin-bottom:16px; }
+.prose strong { color:var(--accent); font-weight:500; }
 
-/* --- Header --- */
-.header {
-  margin-bottom: 48px;
-  border-bottom: 2px solid var(--miratuku-camel);
-  padding-bottom: 32px;
-}
-.header h1 {
-  font-size: 32px;
-  font-weight: 400;
-  color: var(--accent);
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.header .subtitle {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-}
-.header .reference {
-  font-size: 12px;
-  color: var(--miratuku-warm-brown);
-}
+.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:24px; margin-bottom:20px; }
+.insight { background:linear-gradient(135deg,#fdf6f0,var(--bg)); border:1px solid var(--m-pale-peach); border-radius:8px; padding:24px; margin-bottom:20px; }
+.insight-title { font-size:14px; font-weight:500; color:var(--m-terracotta); margin-bottom:8px; }
 
-/* --- Section --- */
-.section {
-  margin-bottom: 48px;
-}
-.section-title {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--accent);
-  margin-bottom: 16px;
-  padding-left: 12px;
-  border-left: 3px solid var(--miratuku-terracotta);
-}
-.section-subtitle {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:20px; }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px 16px; text-align:center; }
+.stat-value { font-size:28px; font-weight:300; color:var(--accent); }
+.stat-label { font-size:11px; color:var(--text2); margin-top:2px; }
 
-/* --- Prose --- */
-.prose {
-  font-size: 15px;
-  line-height: 2;
-  color: var(--text);
-  margin-bottom: 20px;
-}
-.prose strong {
-  color: var(--accent);
-  font-weight: 500;
-}
+.controls { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.controls button { background:var(--accent); color:#fff; border:none; padding:7px 20px; border-radius:6px; cursor:pointer; font-size:13px; font-family:var(--ff); }
+.controls button:hover { background:var(--m-deep-brown); }
+.controls button.active { background:var(--m-terracotta); }
+.controls input[type=range] { flex:1; min-width:120px; accent-color:var(--accent); }
+.step-label { font-size:13px; color:var(--text2); min-width:60px; text-align:right; }
 
-/* --- Cards --- */
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 20px;
-}
+.grid-row { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:24px; }
+@media(max-width:768px){ .grid-row{grid-template-columns:1fr;} }
+.grid-panel h3 { font-size:13px; font-weight:500; color:var(--text2); margin-bottom:6px; }
+.water-label { text-align:center; font-size:10px; color:var(--m-warm-brown); letter-spacing:2px; margin:3px 0; }
+.grid { display:grid; gap:2px; aspect-ratio:1; }
+.cell { border-radius:3px; position:relative; transition:background .3s; cursor:crosshair; }
+.cell:hover { outline:2px solid var(--accent); outline-offset:-1px; z-index:1; }
+.tooltip { display:none; position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; padding:4px 8px; border-radius:4px; font-size:10px; white-space:nowrap; z-index:10; pointer-events:none; }
+.cell:hover .tooltip { display:block; }
 
-/* --- Stats --- */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px 20px;
-  text-align: center;
-}
-.stat-value {
-  font-size: 32px;
-  font-weight: 300;
-  color: var(--accent);
-}
-.stat-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
+.phase-legend { display:flex; gap:2px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+.phase-legend-item { display:flex; align-items:center; gap:3px; margin-right:10px; font-size:11px; color:var(--text2); }
+.phase-swatch { width:12px; height:12px; border-radius:3px; }
 
-/* --- Controls --- */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-.controls button {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 8px 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-family: var(--font-family);
-  transition: background 0.2s;
-}
-.controls button:hover { background: var(--miratuku-deep-brown); }
-.controls button.active { background: var(--miratuku-terracotta); }
-#slider {
-  flex: 1;
-  min-width: 180px;
-  accent-color: var(--accent);
-  height: 6px;
-}
-.step-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-  min-width: 80px;
-  text-align: right;
-}
+.charts-row { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:28px; }
+@media(max-width:768px){ .charts-row{grid-template-columns:1fr;} }
+.chart-panel h3 { font-size:13px; font-weight:500; color:var(--text2); margin-bottom:6px; }
+canvas { width:100%; height:200px; background:var(--card); border-radius:8px; border:1px solid var(--border); }
+.chart-legend { display:flex; gap:14px; margin-top:6px; font-size:11px; color:var(--text2); }
+.chart-legend-item { display:flex; align-items:center; gap:4px; }
+.cdot { width:10px; height:10px; border-radius:50%; }
 
-/* --- Grids --- */
-.grid-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-bottom: 32px;
-}
-@media (max-width: 768px) {
-  .grid-row { grid-template-columns: 1fr; }
-}
-.grid-panel h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-.water-label {
-  text-align: center;
-  font-size: 11px;
-  color: var(--miratuku-warm-brown);
-  letter-spacing: 2px;
-  margin: 4px 0;
-}
-.grid {
-  display: grid;
-  gap: 2px;
-  aspect-ratio: 1;
-}
-.cell {
-  border-radius: 3px;
-  position: relative;
-  transition: background-color 0.3s ease;
-  cursor: crosshair;
-}
-.cell:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
-  z-index: 1;
-}
-.tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent);
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  white-space: nowrap;
-  z-index: 10;
-  pointer-events: none;
-}
-.cell:hover .tooltip { display: block; }
-.phase-legend {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-.phase-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 12px;
-}
-.phase-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-.phase-label-text {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
+.calendar-ring { width:280px; height:280px; margin:0 auto; position:relative; }
+.calendar-ring svg { width:100%; height:100%; }
+.cal-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+.cal-center .yr { font-size:24px; font-weight:300; color:var(--accent); }
+.cal-center .lab { font-size:10px; color:var(--text2); }
 
-/* --- Ritual Calendar --- */
-.calendar-ring {
-  width: 320px;
-  height: 320px;
-  margin: 0 auto;
-  position: relative;
-}
-.calendar-ring svg { width: 100%; height: 100%; }
-.calendar-center-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-.calendar-center-text .year-num {
-  font-size: 28px;
-  font-weight: 300;
-  color: var(--accent);
-}
-.calendar-center-text .year-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-.calendar-legend {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.calendar-legend-item {
-  font-size: 11px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+/* Watershed diagram */
+.watershed-viz { display:flex; flex-direction:column; align-items:center; gap:4px; padding:16px 0; }
+.ws-level { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
+.ws-node { width:28px; height:28px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; transition:background .3s; }
 
-/* --- Charts --- */
-.charts-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-bottom: 32px;
-}
-@media (max-width: 768px) {
-  .charts-row { grid-template-columns: 1fr; }
-}
-.chart-panel h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-canvas {
-  width: 100%;
-  height: 220px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-.chart-legend {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-.chart-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.chart-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+/* Budding timeline */
+.bud-timeline { display:flex; align-items:flex-end; gap:2px; height:120px; padding:8px 0; }
+.bud-bar { min-width:8px; flex:1; border-radius:3px 3px 0 0; transition:height .3s, background .3s; }
 
-/* --- Tradeoff Diagram --- */
-.tradeoff-diagram {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  padding: 24px 0;
-  flex-wrap: wrap;
-}
-.tradeoff-side {
-  text-align: center;
-  max-width: 260px;
-}
-.tradeoff-icon {
-  font-size: 48px;
-  margin-bottom: 8px;
-}
-.tradeoff-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-.tradeoff-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-.tradeoff-arrow {
-  display: flex;
-  align-items: center;
-  font-size: 28px;
-  color: var(--miratuku-camel);
-}
+.tradeoff-diagram { display:flex; justify-content:center; gap:32px; padding:20px 0; flex-wrap:wrap; }
+.tradeoff-side { text-align:center; max-width:240px; }
+.tradeoff-title { font-size:14px; font-weight:500; color:var(--accent); margin-bottom:4px; }
+.tradeoff-desc { font-size:12px; color:var(--text2); line-height:1.7; }
+.tradeoff-arrow { display:flex; align-items:center; font-size:24px; color:var(--m-camel); }
 
-/* --- Insight Box --- */
-.insight {
-  background: linear-gradient(135deg, #fdf6f0, #faf8f5);
-  border: 1px solid var(--miratuku-pale-peach);
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 20px;
-}
-.insight-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--miratuku-terracotta);
-  margin-bottom: 8px;
-}
+.decision-flow { display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0; flex-wrap:wrap; }
+.decision-box { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; font-size:12px; text-align:center; max-width:160px; }
+.decision-arrow { color:var(--m-camel); font-size:18px; }
 
-/* --- Temple Hierarchy --- */
-.temple-hierarchy {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 20px 0;
-}
-.temple-level {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 500px;
-}
-.temple-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.temple-bar {
-  flex: 1;
-  height: 8px;
-  border-radius: 4px;
-  position: relative;
-}
-.temple-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  min-width: 140px;
-}
-.temple-connector {
-  width: 2px;
-  height: 12px;
-  background: var(--border);
-}
+.temple-hierarchy { display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 0; }
+.temple-level { display:flex; align-items:center; gap:10px; width:100%; max-width:460px; }
+.temple-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.temple-bar { flex:1; height:7px; border-radius:4px; }
+.temple-label { font-size:11px; color:var(--text2); min-width:130px; }
+.temple-connector { width:2px; height:8px; background:var(--border); }
 
-/* --- Decision Rule --- */
-.decision-flow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 16px 0;
-  flex-wrap: wrap;
-}
-.decision-box {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 13px;
-  text-align: center;
-  max-width: 180px;
-}
-.decision-arrow {
-  color: var(--miratuku-camel);
-  font-size: 20px;
-}
+.footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--border); font-size:11px; color:var(--m-warm-brown); text-align:center; }
 
-/* --- Footer --- */
-.footer {
-  margin-top: 64px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--miratuku-warm-brown);
-  text-align: center;
-}
+.tab-bar { display:flex; gap:0; margin-bottom:0; }
+.tab-btn { padding:10px 20px; font-size:13px; font-family:var(--ff); border:1px solid var(--border); border-bottom:none; background:var(--bg); cursor:pointer; color:var(--text2); border-radius:8px 8px 0 0; }
+.tab-btn.active { background:var(--card); color:var(--accent); font-weight:500; }
+.tab-content { border:1px solid var(--border); border-radius:0 8px 8px 8px; background:var(--card); padding:24px; margin-bottom:32px; display:none; }
+.tab-content.active { display:block; }
+
+.ref-list { font-size:13px; line-height:2; }
+.ref-list p { margin-bottom:4px; }
+
+.sep { border:none; border-top:2px solid var(--m-pale-peach); margin:56px 0; }
+
+.sub-title { font-size:13px; font-weight:500; color:var(--text2); margin-bottom:10px; }
 </style>
 </head>
 <body>
-
 <div class="container">
 
-<!-- ===== HEADER ===== -->
 <div class="header">
   <h1>スバック灌漑シミュレーション</h1>
-  <p class="subtitle">水と儀礼の自己組織化 — バリ島水寺院ネットワークの創発モデル</p>
-  <p class="reference">Lansing, J.S. & Kremer, J.N. (1993) "Emergent Properties of Balinese Water Temple Networks" American Anthropologist 95(1):97-114</p>
+  <p class="sub">水と儀礼の自己組織化 — バリ島水寺院ネットワークの創発を三つのモデルで探る</p>
 </div>
 
+<!-- ============================================================ -->
+<!-- INTRODUCTION -->
+<!-- ============================================================ -->
 
-<!-- ===== 1. 導入 ===== -->
 <div class="section">
   <h2 class="section-title">スバックとは何か</h2>
-  <p class="prose">
-    スバック（Subak）は、バリ島の水田稲作を支える伝統的な灌漑共同体です。1,000年以上の歴史を持ち、2012年にはUNESCO世界文化遺産に登録されました。バリ島には約1,200のスバックがあり、それぞれが数十ヘクタールの棚田を管理しています。スバックの最も注目すべき特徴は、中央集権的な管理者がいないにもかかわらず、流域全体で高度に調整された水の配分と作付けスケジュールを実現していることです。
-  </p>
-  <p class="prose">
-    この調整を可能にしているのが、<strong>水寺院（Pura Ulun Swi / Pura Ulun Danu）</strong>のネットワークです。水寺院は宗教施設であると同時に、灌漑の意思決定を行う場でもあります。各スバックの代表者は水寺院に集まり、儀礼を通じて作付け時期を決定します。つまり、宗教的なカレンダーシステムが、実質的に灌漑の最適化アルゴリズムとして機能しているのです。
-  </p>
-</div>
-
-
-<!-- ===== 2. トレードオフの構造 ===== -->
-<div class="section">
-  <h2 class="section-title">二つの力のトレードオフ</h2>
-  <p class="prose">
-    スバックの農家は、作付け時期を決めるとき、二つの相反する圧力に直面します。このトレードオフこそが、スバックシステムの核心であり、シミュレーションの中心的なメカニズムです。
-  </p>
+  <p class="prose">スバック（Subak）は、バリ島の水田稲作を支える伝統的な灌漑共同体です。1,000年以上の歴史を持ち、2012年にUNESCO世界文化遺産に登録されました。バリ島には約1,200のスバックがあり、それぞれが数十ヘクタールの棚田を管理しています。中央集権的な管理者がいないにもかかわらず、流域全体で高度に調整された水の配分と作付けスケジュールを実現しているのが最大の特徴です。</p>
+  <p class="prose">この調整を可能にしているのが、<strong>水寺院（Pura Ulun Swi / Pura Ulun Danu）</strong>のネットワークです。水寺院は宗教施設であると同時に灌漑の意思決定の場であり、各スバックの代表者が集まり、儀礼を通じて作付け時期を決定します。宗教的なカレンダーシステムが、実質的に灌漑の最適化アルゴリズムとして機能しているのです。</p>
 
   <div class="card">
     <div class="tradeoff-diagram">
       <div class="tradeoff-side">
         <div class="tradeoff-title">害虫の圧力</div>
-        <div style="font-size:13px; color:var(--miratuku-terracotta); margin-bottom:8px;">同期が有利</div>
-        <p class="tradeoff-desc">
-          近隣のスバックが同時に植え付け・収穫すると、広域で一斉に休耕期間が生まれます。害虫（特にウンカ）は食料を失い、個体数が激減します。しかし同期を崩すと、害虫は常にどこかの水田で食料を見つけられるため、被害が最大50%に達します。
-        </p>
+        <div style="font-size:12px;color:var(--m-terracotta);margin-bottom:6px;">同期が有利</div>
+        <p class="tradeoff-desc">近隣が同時に植え付け・収穫すると、一斉休耕で害虫が激減。非同期では被害が最大50%に。</p>
       </div>
       <div class="tradeoff-arrow">&#x21C6;</div>
       <div class="tradeoff-side">
         <div class="tradeoff-title">水の圧力</div>
-        <div style="font-size:13px; color:var(--miratuku-amber-brown); margin-bottom:8px;">分散が有利</div>
-        <p class="tradeoff-desc">
-          全スバックが同時に植え付けると、ピーク時の水需要が一点に集中し、特に下流のスバックは深刻な水不足に陥ります。作付けを時間的に分散させれば、水を均等に分け合うことができます。
-        </p>
+        <div style="font-size:12px;color:var(--m-amber-brown);margin-bottom:6px;">分散が有利</div>
+        <p class="tradeoff-desc">全員が同時に植えると水需要が集中し、下流は深刻な水不足に。時間差で水を分け合える。</p>
       </div>
     </div>
   </div>
 
-  <div class="insight">
-    <div class="insight-title">この対立が意味すること</div>
-    <p class="prose" style="margin-bottom:0;">
-      完全な同期も完全な分散も最適ではありません。最良の解は「適度なクラスター」 — 近隣同士は同期しつつ、流域全体では時間差をつけるという中間的なパターンです。驚くべきことに、水寺院の儀礼カレンダーはまさにこの最適パターンを実現しています。
-    </p>
-  </div>
-</div>
-
-
-<!-- ===== 3. 儀礼カレンダー ===== -->
-<div class="section">
-  <h2 class="section-title">儀礼カレンダーと水寺院の階層</h2>
-  <p class="prose">
-    バリの水田農業は、<strong>210日周期のパウコン暦</strong>と<strong>太陰太陽暦のサカ暦</strong>の二つの暦によって律動しています。パウコン暦は、1週から10週まで異なる周期を持つ曜日が組み合わさる複合的なカレンダーで、特定の日の組み合わせが農作業の吉日を決定します。
-  </p>
-  <p class="prose">
-    水寺院の祭礼は年間を通じて定められた日程で行われ、それが作付け・灌漑のスケジュールと直接対応しています。たとえば、最上位のバトゥール湖寺院の祭礼が全体の農暦の基準を定め、その下位の水寺院がそれぞれの担当区域で具体的な日程を調整します。
-  </p>
-
   <div class="card">
-    <p class="section-subtitle">水寺院の三層構造</p>
+    <p class="sub-title">水寺院の三層構造</p>
     <div class="temple-hierarchy">
       <div class="temple-level">
-        <div class="temple-dot" style="background: var(--miratuku-terracotta);"></div>
-        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-terracotta), var(--miratuku-rose-peach)); width: 100%;"></div>
+        <div class="temple-dot" style="background:var(--m-terracotta);"></div>
+        <div class="temple-bar" style="background:linear-gradient(90deg,var(--m-terracotta),var(--m-rose-peach));width:100%;"></div>
         <div class="temple-label"><strong>バトゥール湖寺院</strong><br>流域全体の暦基準</div>
       </div>
       <div class="temple-connector"></div>
       <div class="temple-level">
-        <div class="temple-dot" style="background: var(--miratuku-camel);"></div>
-        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-camel), var(--miratuku-light-beige)); width: 75%;"></div>
-        <div class="temple-label"><strong>マスクティ寺院</strong><br>河川単位の調整（数十スバック）</div>
+        <div class="temple-dot" style="background:var(--m-camel);"></div>
+        <div class="temple-bar" style="background:linear-gradient(90deg,var(--m-camel),var(--m-light-beige));width:75%;"></div>
+        <div class="temple-label"><strong>マスクティ寺院</strong><br>河川単位の調整</div>
       </div>
       <div class="temple-connector"></div>
       <div class="temple-level">
-        <div class="temple-dot" style="background: var(--miratuku-sand-gold);"></div>
-        <div class="temple-bar" style="background: linear-gradient(90deg, var(--miratuku-sand-gold), var(--miratuku-pale-peach)); width: 50%;"></div>
-        <div class="temple-label"><strong>ウルン・スイ寺院</strong><br>個別スバックの儀礼暦管理</div>
+        <div class="temple-dot" style="background:var(--m-sand-gold);"></div>
+        <div class="temple-bar" style="background:linear-gradient(90deg,var(--m-sand-gold),var(--m-pale-peach));width:50%;"></div>
+        <div class="temple-label"><strong>ウルン・スイ寺院</strong><br>個別スバックの儀礼暦</div>
       </div>
     </div>
-    <p class="prose" style="font-size:13px; color:var(--text-secondary); margin-top:12px; margin-bottom:0;">
-      この階層構造が、グローバルな制約（水の総量）とローカルな最適化（害虫対策）を同時に達成する仕組みを提供しています。上位の寺院が「おおまかな時間帯」を定め、下位の寺院が「具体的な日取り」を近隣と調整するという入れ子型の意思決定です。
-    </p>
   </div>
-</div>
-
-
-<!-- ===== 4. シミュレーション ===== -->
-<div class="section">
-  <h2 class="section-title">シミュレーション</h2>
-  <p class="prose">
-    Lansing & Kremer（1993）のモデルを現代的に再実装しました。12 x 12 = 144のスバックが格子状に配置され、水は上（山側）から下（海側）へ流れます。各スバックは年に1度、6つの作付け時期（約2ヶ月ごと）から一つを選びます。意思決定のルールは驚くほど単純です。
-  </p>
 
   <div class="card">
-    <p class="section-subtitle">意思決定ルール</p>
+    <p class="sub-title">儀礼カレンダー</p>
+    <p class="prose" style="margin-bottom:0;">バリの水田農業は<strong>210日周期のパウコン暦</strong>と<strong>太陰太陽暦のサカ暦</strong>の二つの暦によって律動しています。水寺院の祭礼が作付け・灌漑スケジュールと直接対応し、最上位のバトゥール湖寺院が全体の農暦基準を定め、下位の水寺院が担当区域の日程を調整するという入れ子型の構造です。</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ============================================================ -->
+<!-- MODEL 1: Lansing & Kremer (1993) -->
+<!-- ============================================================ -->
+
+<div class="section" id="model1-section">
+  <h2 class="section-title"><span class="model-badge">Model 1</span> Lansing & Kremer (1993) 基本モデル</h2>
+  <p class="prose">Lansing & Kremerの原論文モデルの現代的再実装です。12x12 = 144のスバックが格子状に配置され、水は上（山側）から下（海側）へ流れます。各スバックの意思決定ルールは「最も収量の高い隣人の作付け時期を真似る」という極めて単純なものです。</p>
+
+  <div class="card">
     <div class="decision-flow">
-      <div class="decision-box">
-        隣接する4つの<br>スバックの収量を<br>観察する
-      </div>
+      <div class="decision-box">隣接4スバックの<br>収量を観察</div>
       <div class="decision-arrow">&#x2192;</div>
-      <div class="decision-box">
-        最も収量が<br>高い隣人の<br>作付け時期を<br>真似る
-      </div>
+      <div class="decision-box">最高収量の<br>隣人を真似る</div>
       <div class="decision-arrow">&#x2192;</div>
-      <div class="decision-box">
-        5%の確率で<br>ランダムに<br>新しい時期を<br>試す（探索）
-      </div>
-    </div>
-    <p class="prose" style="font-size:13px; color:var(--text-secondary); margin-bottom:0;">
-      収量は「害虫被害」と「水ストレス」の両方を考慮して計算されます。害虫被害は近隣との同期度で決まり、水ストレスは上流の水需要と自分の位置（下流ほど不利）で決まります。この二つの損失を最小化するバランス点を、各スバックが局所的な情報だけで探索します。
-    </p>
-  </div>
-</div>
-
-
-<!-- ===== Stats ===== -->
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-value" id="stat-yield">--</div>
-    <div class="stat-label">平均収量（t/ha）</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="stat-pest">--</div>
-    <div class="stat-label">害虫被害率</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="stat-water">--</div>
-    <div class="stat-label">水ストレス</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="stat-sync">--</div>
-    <div class="stat-label">同期度</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="stat-efficiency">--</div>
-    <div class="stat-label">収量効率</div>
-  </div>
-</div>
-
-<!-- ===== Controls ===== -->
-<div class="controls">
-  <button id="btn-play" onclick="togglePlay()">再生</button>
-  <button onclick="resetSim()">リセット</button>
-  <input type="range" id="slider" min="0" max="__MAX_STEP__" value="0" oninput="goToStep(+this.value)">
-  <span class="step-label" id="step-label">第0年</span>
-</div>
-
-
-<!-- ===== Grid Views ===== -->
-<div class="grid-row">
-  <div class="grid-panel">
-    <h3>作付けフェーズ（稲のライフサイクル）</h3>
-    <div class="water-label">&#x25B2; 上流（水源・山側）</div>
-    <div class="grid" id="phase-grid" style="grid-template-columns: repeat(__GRID_SIZE__, 1fr);"></div>
-    <div class="water-label">&#x25BC; 下流（海側）</div>
-    <div class="phase-legend" id="phase-legend"></div>
-  </div>
-  <div class="grid-panel">
-    <h3>収量マップ（t/ha）</h3>
-    <div class="water-label">&#x25B2; 上流</div>
-    <div class="grid" id="yield-grid" style="grid-template-columns: repeat(__GRID_SIZE__, 1fr);"></div>
-    <div class="water-label">&#x25BC; 下流</div>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--text-secondary);">
-      <span>低収量</span>
-      <div style="display:flex; gap:2px;">
-        <div style="width:14px;height:14px;border-radius:3px;background:#B07256;"></div>
-        <div style="width:14px;height:14px;border-radius:3px;background:#CEA26F;"></div>
-        <div style="width:14px;height:14px;border-radius:3px;background:#F0BE83;"></div>
-        <div style="width:14px;height:14px;border-radius:3px;background:#F2C792;"></div>
-        <div style="width:14px;height:14px;border-radius:3px;background:#F8CDAC;"></div>
-      </div>
-      <span>高収量</span>
+      <div class="decision-box">5%の確率で<br>ランダム探索</div>
     </div>
   </div>
-</div>
 
+  <div class="stats-row" id="m1-stats"></div>
+  <div class="controls">
+    <button id="m1-play" onclick="m1.toggle()">再生</button>
+    <button onclick="m1.reset()">リセット</button>
+    <input type="range" id="m1-slider" min="0" max="49" value="0" oninput="m1.go(+this.value)">
+    <span class="step-label" id="m1-step">第0年</span>
+  </div>
 
-<!-- ===== Ritual Calendar Ring ===== -->
-<div class="section">
-  <h2 class="section-title">儀礼カレンダーと作付け分布</h2>
-  <p class="prose">
-    下の円環図は、6つの作付けフェーズに何割のスバックが属しているかを示しています。バリ島の稲作は約12ヶ月周期で、2ヶ月ごとの6フェーズに分かれます。初期のランダムな状態からどのようにフェーズが集約されていくかを観察できます。円の外周に示しているのは、各フェーズに対応するバリ暦上の時期と主要な水寺院儀礼です。
-  </p>
+  <div class="grid-row">
+    <div class="grid-panel">
+      <h3>作付けフェーズ</h3>
+      <div class="water-label">&#x25B2; 上流</div>
+      <div class="grid" id="m1-phase" style="grid-template-columns:repeat(12,1fr);"></div>
+      <div class="water-label">&#x25BC; 下流</div>
+    </div>
+    <div class="grid-panel">
+      <h3>収量マップ</h3>
+      <div class="water-label">&#x25B2; 上流</div>
+      <div class="grid" id="m1-yield" style="grid-template-columns:repeat(12,1fr);"></div>
+      <div class="water-label">&#x25BC; 下流</div>
+    </div>
+  </div>
+  <div class="phase-legend" id="m1-legend"></div>
 
   <div class="card" style="text-align:center;">
-    <div class="calendar-ring">
-      <svg id="calendar-svg" viewBox="0 0 320 320"></svg>
-      <div class="calendar-center-text">
-        <div class="year-num" id="cal-year">0</div>
-        <div class="year-label">年目</div>
+    <h3 style="font-size:13px;color:var(--text2);margin-bottom:8px;">儀礼カレンダーと作付け分布</h3>
+    <div class="calendar-ring"><svg id="m1-cal" viewBox="0 0 280 280"></svg><div class="cal-center"><div class="yr" id="m1-cal-yr">0</div><div class="lab">年目</div></div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel"><h3>収量の推移</h3><canvas id="m1-yc"></canvas>
+      <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>平均</div><div class="chart-legend-item"><div class="cdot" style="background:var(--m-pale-peach);"></div>範囲</div></div>
+    </div>
+    <div class="chart-panel"><h3>損失要因の推移</h3><canvas id="m1-lc"></canvas>
+      <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>害虫</div><div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>水</div></div>
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ============================================================ -->
+<!-- MODEL 2: Janssen (2007) -->
+<!-- ============================================================ -->
+
+<div class="section" id="model2-section">
+  <h2 class="section-title"><span class="model-badge m2">Model 2</span> Janssen (2007) 流域ネットワークモデル</h2>
+  <p class="prose">Janssenは、Lansing & Kremerの結果が「モデルの特定の仮定に依存しているのではないか」と問いました。彼の拡張モデルでは、単純な格子を<strong>現実的な流域ネットワーク（有向非巡回グラフ）</strong>に置き換え、害虫が水路を通じて下流に伝播するメカニズムを追加しました。さらに、3種類の意思決定ルールを比較することで、自己組織化の頑健性を検証しています。</p>
+
+  <div class="card">
+    <p class="sub-title">Janssenが追加した3つの要素</p>
+    <p class="prose"><strong>1. 流域ネットワーク構造</strong> — スバックは格子ではなく、上流（水源）から下流へ分岐する樹状ネットワーク上に配置されます。上流には少数、下流には多数のスバックがあり、水の非対称性がより現実的に表現されます。</p>
+    <p class="prose"><strong>2. 水路経由の害虫伝播</strong> — 害虫は隣接スバック間だけでなく、灌漑水路を通じて上流から下流に幼虫が流れます。上流が非同期だと、下流はより大きな害虫被害を受けます。</p>
+    <p class="prose" style="margin-bottom:0;"><strong>3. 意思決定ルールの比較</strong> — 「最善模倣」「満足化（閾値以上なら変えない）」「ランダム（学習なし）」の3ルールを比較し、自己組織化がルールに対してどの程度頑健かを検証します。</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="m2.switchRule('copy_best')">最善模倣</button>
+    <button class="tab-btn" onclick="m2.switchRule('satisfice')">満足化</button>
+    <button class="tab-btn" onclick="m2.switchRule('random')">ランダム</button>
+  </div>
+  <div class="tab-content active" id="m2-tab">
+    <div class="stats-row" id="m2-stats"></div>
+    <div class="controls">
+      <button id="m2-play" onclick="m2.toggle()">再生</button>
+      <button onclick="m2.reset()">リセット</button>
+      <input type="range" id="m2-slider" min="0" max="49" value="0" oninput="m2.go(+this.value)">
+      <span class="step-label" id="m2-step">第0年</span>
+    </div>
+
+    <div class="grid-row">
+      <div class="grid-panel">
+        <h3>流域ネットワーク（フェーズ別色分け）</h3>
+        <div class="water-label">&#x25B2; 水源</div>
+        <div class="watershed-viz" id="m2-watershed"></div>
+        <div class="water-label">&#x25BC; 下流</div>
+      </div>
+      <div class="grid-panel">
+        <h3>儀礼カレンダー分布</h3>
+        <div class="calendar-ring"><svg id="m2-cal" viewBox="0 0 280 280"></svg><div class="cal-center"><div class="yr" id="m2-cal-yr">0</div><div class="lab">年目</div></div></div>
       </div>
     </div>
-    <div class="calendar-legend" id="cal-legend"></div>
-  </div>
-</div>
 
-
-<!-- ===== Charts ===== -->
-<div class="charts-row">
-  <div class="chart-panel">
-    <h3>収量の推移</h3>
-    <canvas id="yield-chart"></canvas>
-    <div class="chart-legend">
-      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--accent);"></div>平均</div>
-      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-pale-peach);"></div>最小/最大</div>
+    <div class="charts-row">
+      <div class="chart-panel"><h3>収量の推移（3ルール比較）</h3><canvas id="m2-yc"></canvas>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>最善模倣</div>
+          <div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>満足化</div>
+          <div class="chart-legend-item"><div class="cdot" style="background:var(--m-warm-brown);"></div>ランダム</div>
+        </div>
+      </div>
+      <div class="chart-panel"><h3>損失要因（現在のルール）</h3><canvas id="m2-lc"></canvas>
+        <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>害虫</div><div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>水</div></div>
+      </div>
     </div>
   </div>
-  <div class="chart-panel">
-    <h3>損失要因の推移</h3>
-    <canvas id="loss-chart"></canvas>
-    <div class="chart-legend">
-      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-terracotta);"></div>害虫被害</div>
-      <div class="chart-legend-item"><div class="chart-dot" style="background:var(--miratuku-camel);"></div>水ストレス</div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ===== 5. 読み解き ===== -->
-<div class="section">
-  <h2 class="section-title">シミュレーションの読み解き</h2>
-
-  <div class="card">
-    <p class="section-subtitle">初期状態（第0年）</p>
-    <p class="prose" style="margin-bottom:0;">
-      各スバックはランダムに作付け時期を選んでいます。作付けフェーズのグリッドはモザイク状で、隣り合うスバックの同期がほとんどありません。そのため害虫被害が高く（20-25%程度）、一方で水はある程度分散されています。全体の収量効率は80%台にとどまります。
-    </p>
-  </div>
-
-  <div class="card">
-    <p class="section-subtitle">自己組織化の過程（第5-15年）</p>
-    <p class="prose" style="margin-bottom:0;">
-      「最も収量の高い隣人を真似る」というルールにより、成功した作付けパターンが周囲に伝播し始めます。同じフェーズのスバックが空間的にまとまり、<strong>クラスター</strong>が形成されます。この過程は、水寺院で行われる合議によって隣接するスバックが互いの戦略を学び合う現実のプロセスに対応しています。害虫被害が急速に低下し、収量が上昇します。
-    </p>
-  </div>
-
-  <div class="card">
-    <p class="section-subtitle">収束状態（第20年以降）</p>
-    <p class="prose" style="margin-bottom:0;">
-      システムは準安定状態に収束します。完全な同期には至らず、いくつかの大きなクラスターに分かれた「パッチワーク型」のパターンが形成されます。これは水の制約のためで、特に下流のスバックは上流とは異なるフェーズを選ぶことで水ストレスを避けます。このパターンは、実際のバリ島で観察される水寺院の管轄区域ごとの作付けパターンと構造的に一致します。5%のランダム探索がシステムの硬直化を防ぎ、環境変化への適応力を維持しています。
-    </p>
-  </div>
-</div>
-
-
-<!-- ===== 6. 現代的含意 ===== -->
-<div class="section">
-  <h2 class="section-title">なぜ今このモデルが重要なのか</h2>
-  <p class="prose">
-    1960-70年代、インドネシア政府は「緑の革命」政策の下、水寺院の儀礼カレンダーを無視して年3回の稲作を推奨しました。高収量品種と化学肥料を導入し、伝統的な作付けスケジュールの放棄を農家に促したのです。結果は壊滅的でした。害虫が大発生し、1970年代後半にはバリ島の稲作は危機的状況に陥りました。
-  </p>
-  <p class="prose">
-    Lansingらのシミュレーションは、水寺院の儀礼カレンダーが「迷信」ではなく、高度に洗練された分散型最適化システムであることを科学的に証明しました。このシステムには、現代のシステム設計に応用可能ないくつかの原理が含まれています。
-  </p>
 
   <div class="insight">
-    <div class="insight-title">スバックが示す設計原理</div>
-    <p class="prose">
-      <strong>分散型の意思決定</strong> — 中央の管理者がおらず、各エージェントが局所的な情報で判断する。にもかかわらず全体最適に近い結果が創発する。これはインターネットのルーティングプロトコルや分散データベースの一貫性モデルと同型の構造です。
-    </p>
-    <p class="prose">
-      <strong>儀礼による同期</strong> — 水寺院の祭礼は「通信プロトコル」として機能し、近隣スバック間の情報共有と合意形成を可能にする。宗教的権威が強制ではなく調整のメカニズムとして働く点が特徴的です。
-    </p>
-    <p class="prose">
-      <strong>適応と安定のバランス</strong> — システムは完全に固定されず、常にわずかな揺らぎ（シミュレーションの5%ランダム探索に相当）を維持する。気候変動や新しい品種の導入に対して、中央の命令なしに適応できる柔軟性がここから生まれます。
-    </p>
-    <p class="prose" style="margin-bottom:0;">
-      <strong>多層的なガバナンス</strong> — 水寺院の三層構造が示すように、異なるスケールの問題を異なるレベルで処理する入れ子型の統治構造が、複雑な共有資源の管理を可能にしています。これはElinor Ostromがコモンズの管理原則として定式化した知見とも深く共鳴します。
-    </p>
+    <div class="insight-title">Janssenモデルが示すこと</div>
+    <p class="prose" style="margin-bottom:0;">「最善模倣」ルールでは元モデルと同様に自己組織化が起きますが、「満足化」ルールでは収束が遅くなり、「ランダム」ルールでは自己組織化がまったく起きません。これは、水寺院での情報共有（=隣人の成功を知る仕組み）がシステムの根幹であることを示しています。同時に、害虫の水路伝播により下流スバックの条件がより厳しくなり、上流-下流の非対称性が結果に大きく影響することが明らかになります。</p>
   </div>
 </div>
 
+<hr class="sep">
 
-<!-- ===== 7. モデルの限界 ===== -->
-<div class="section">
-  <h2 class="section-title">モデルの限界と発展</h2>
-  <p class="prose">
-    このシミュレーションはLansing & Kremerの古典モデルを忠実に再現していますが、現実のスバックシステムにはモデルに含まれていない重要な要素があります。現実では水は複雑な地形を流れ、単純な上流-下流の一方向ではありません。また、社会的な紐帯、カースト、土地所有の歴史などがスバック間の関係に影響します。気候変動や観光開発による水の競合も、現代のスバックが直面する新たな課題です。
-  </p>
-  <p class="prose">
-    Janssen（2007）やLansing et al.（2009）による拡張モデルでは、より現実的なネットワーク構造や、水寺院の「出芽（budding）」による新しい調整単位の形成過程が組み込まれています。それでも、このシンプルなモデルが示す「局所的ルールからの全体最適の創発」という基本的な洞察は、複雑適応系の理解における重要な基礎であり続けています。
-  </p>
+<!-- ============================================================ -->
+<!-- MODEL 3: Lansing et al. (2009) -->
+<!-- ============================================================ -->
+
+<div class="section" id="model3-section">
+  <h2 class="section-title"><span class="model-badge m3">Model 3</span> Lansing et al. (2009) バディングモデル</h2>
+  <p class="prose">Model 1と2は「スバックのネットワークがすでに存在する」ことを前提としていました。しかし現実には、バリ島のスバックネットワーク自体が何世紀にもわたって形成されてきたものです。Lansing et al. (2009)の「バディング（出芽）モデル」は、<strong>ネットワーク自体がどのように成長・分裂して現在の形になったか</strong>を説明する動的モデルです。</p>
+
+  <div class="card">
+    <p class="sub-title">バディング（出芽）のメカニズム</p>
+    <p class="prose"><strong>成功した共同体が分裂する</strong> — 収量が閾値を超えたスバックは人口が成長し、一部の成員が下流に移動して新しいスバックを設立します。娘スバックは親の作付け戦略を継承しますが、独自に適応を始めます。</p>
+    <p class="prose"><strong>分裂パラメータ S = 0.3</strong> — 親の人口の30%が分裂して新スバックを形成します。この値が小さいほど「創設者効果」が強く、娘集団の多様性が低くなります。Lansing et al.はY-STR遺伝子マーカーの分析で、実際のバリの村落間の遺伝的多様性がこのバディングパターンと一致することを示しました。</p>
+    <p class="prose" style="margin-bottom:0;"><strong>ネットワークの自己修復</strong> — バディング後もシステムが最適パラメータ空間内にとどまることが重要です。新しいスバックが加わるたびに水の配分が変わりますが、局所的な学習ルールにより、拡大したネットワークが再び自己組織化します。</p>
+  </div>
+
+  <div class="stats-row" id="m3-stats"></div>
+  <div class="controls">
+    <button id="m3-play" onclick="m3.toggle()">再生</button>
+    <button onclick="m3.reset()">リセット</button>
+    <input type="range" id="m3-slider" min="0" max="79" value="0" oninput="m3.go(+this.value)">
+    <span class="step-label" id="m3-step">第0年</span>
+  </div>
+
+  <div class="grid-row">
+    <div class="grid-panel">
+      <h3>ネットワーク成長（バディング過程）</h3>
+      <div class="water-label">&#x25B2; 水源（創設スバック）</div>
+      <div class="watershed-viz" id="m3-network"></div>
+      <div class="water-label">&#x25BC; 下流（娘スバック）</div>
+    </div>
+    <div class="grid-panel">
+      <h3>スバック数の推移</h3>
+      <canvas id="m3-gc"></canvas>
+      <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--m-amber-brown);"></div>スバック数</div><div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>平均収量</div></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel"><h3>収量の推移</h3><canvas id="m3-yc"></canvas>
+      <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>平均</div><div class="chart-legend-item"><div class="cdot" style="background:var(--m-pale-peach);"></div>範囲</div></div>
+    </div>
+    <div class="chart-panel"><h3>損失要因の推移</h3><canvas id="m3-lc"></canvas>
+      <div class="chart-legend"><div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>害虫</div><div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>水</div></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-title">バディングモデルが示すこと</div>
+    <p class="prose" style="margin-bottom:0;">ネットワークが成長しても、バディング直後の一時的な混乱を経て収量が回復する「耐障害性」が観察されます。これは考古学的証拠（Petanu川流域の古碑文）と遺伝学的証拠（Y-STRマーカーの多様性勾配）の両方によって裏付けられており、スバックシステムが「計画された制度」ではなく、「進化した制度」であることを示唆しています。</p>
+  </div>
 </div>
 
+<hr class="sep">
 
-<!-- ===== 参考文献 ===== -->
+<!-- ============================================================ -->
+<!-- SYNTHESIS & CONCLUSION -->
+<!-- ============================================================ -->
+
+<div class="section">
+  <h2 class="section-title">三つのモデルの統合的理解</h2>
+
+  <div class="card">
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:8px;">観点</th>
+          <th style="text-align:left;padding:8px;">Model 1 (1993)</th>
+          <th style="text-align:left;padding:8px;">Model 2 (2007)</th>
+          <th style="text-align:left;padding:8px;">Model 3 (2009)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;color:var(--text2);">ネットワーク</td>
+          <td style="padding:8px;">格子（固定）</td>
+          <td style="padding:8px;">流域DAG（固定）</td>
+          <td style="padding:8px;">動的に成長</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;color:var(--text2);">害虫モデル</td>
+          <td style="padding:8px;">近隣同期のみ</td>
+          <td style="padding:8px;">+水路伝播</td>
+          <td style="padding:8px;">近隣同期</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;color:var(--text2);">意思決定</td>
+          <td style="padding:8px;">最善模倣</td>
+          <td style="padding:8px;">3ルール比較</td>
+          <td style="padding:8px;">最善模倣+継承</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;color:var(--text2);">問いの核心</td>
+          <td style="padding:8px;">自己組織化は起きるか？</td>
+          <td style="padding:8px;">どの条件で頑健か？</td>
+          <td style="padding:8px;">ネットワーク自体はどう生まれたか？</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;color:var(--text2);">検証手段</td>
+          <td style="padding:8px;">空間パターン</td>
+          <td style="padding:8px;">感度分析</td>
+          <td style="padding:8px;">考古学+遺伝学</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="prose">三つのモデルは、それぞれ異なる問いに答えています。Model 1は「単純なルールから秩序が生まれうるか」を問い、Model 2は「その秩序はどの条件下で壊れるか」を検証し、Model 3は「秩序を生むネットワーク自体がどう進化したか」を説明します。</p>
+
+  <p class="prose">これらを総合すると、スバックシステムの堅牢性は三つの要因の組み合わせに由来することがわかります。第一に、局所的な学習ルール（隣人の成功を観察し模倣する）が全体最適を創発させる。第二に、水寺院の階層構造が異なるスケールの問題を適切に分離する。第三に、ネットワーク自体が環境への適応を通じて有機的に成長することで、人口変動や気候変動に対する耐性を維持する。</p>
+
+  <div class="insight">
+    <div class="insight-title">現代への示唆</div>
+    <p class="prose">1960-70年代の「緑の革命」で水寺院の儀礼カレンダーが無視された結果、害虫が大発生しバリ島の稲作は危機に瀕しました。これらのシミュレーションは、伝統的制度が「迷信」ではなく洗練された分散型最適化であることを科学的に示しています。この知見は、コモンズ管理（Ostrom 1990）、分散システム設計、組織論における自律分散型の意思決定モデルに広く応用可能です。</p>
+    <p class="prose" style="margin-bottom:0;">特にModel 3のバディングモデルは、制度は「設計される」のではなく「進化する」という重要な洞察を提供します。成功した共同体が成長し分裂することでネットワーク自体が拡張していく過程は、オープンソースコミュニティやフランチャイズモデルなど、現代の組織成長にも通じる普遍的なパターンです。</p>
+  </div>
+</div>
+
 <div class="section">
   <h2 class="section-title">参考文献</h2>
-  <div class="card" style="font-size:13px; line-height:2;">
+  <div class="card ref-list">
     <p>Lansing, J.S. & Kremer, J.N. (1993). "Emergent Properties of Balinese Water Temple Networks." <em>American Anthropologist</em> 95(1):97-114.</p>
     <p>Janssen, M.A. (2007). "Coordination in irrigation systems: An analysis of the Lansing-Kremer model of Bali." <em>Agricultural Systems</em> 93(1-3):170-190.</p>
     <p>Lansing, J.S. et al. (2009). "A robust budding model of Balinese water temple networks." <em>World Archaeology</em> 41(1):112-133.</p>
@@ -752,377 +444,305 @@ canvas {
   </div>
 </div>
 
-
-<div class="footer">
-  Subak Simulation v2.0 — Lansing & Kremer (1993) model, reimplemented 2026
-</div>
+<div class="footer">Subak Simulation v3.0 — Three models reimplemented 2026</div>
 
 </div><!-- /container -->
 
-
 <script>
-const DATA = __SIMULATION_DATA__;
-const GRID_SIZE = __GRID_SIZE__;
-const N_PHASES = __N_PHASES__;
-const Y_MAX = __Y_MAX__;
+const SIM = __SIMULATION_DATA__;
+const YMAX = 8.6;
+const NP = 6;
+const PC = ['#7A4033','#B07256','#CEA26F','#F0BE83','#F2C792','#F8CDAC'];
+const PN = ['苗代・育苗','田植え','生育期','開花期','登熟期','収穫・休耕'];
+const RN = ['ヌガク','ヌダプ','ニャピ','パンリプラン','マングン','マパグ'];
+const YC = [[176,114,86],[206,162,111],[240,190,131],[242,199,146],[248,205,172]];
 
-// Miratuku CI-based phase colors
-const PHASE_COLORS = [
-  '#7A4033', // Phase 0: seedbed / nursery (deep brown)
-  '#B07256', // Phase 1: transplanting (amber brown)
-  '#CEA26F', // Phase 2: vegetative growth (camel)
-  '#F0BE83', // Phase 3: flowering (sand gold)
-  '#F2C792', // Phase 4: grain filling (light beige)
-  '#F8CDAC', // Phase 5: harvest / fallow (pale peach)
-];
-
-const PHASE_NAMES = [
-  '苗代・育苗',
-  '田植え',
-  '生育期',
-  '開花期',
-  '登熟期',
-  '収穫・休耕',
-];
-
-const RITUAL_NAMES = [
-  'ヌガク（苗代の儀礼）',
-  'ヌダプ（移植の祈り）',
-  'ニャピ・スバック（浄化）',
-  'パンリプラン（開花祭）',
-  'マングン（感謝の儀礼）',
-  'マパグ（収穫感謝祭）',
-];
-
-let currentStep = 0;
-let playing = false;
-let playInterval = null;
-
-function init() {
-  buildGrid('phase-grid');
-  buildGrid('yield-grid');
-  buildPhaseLegend();
-  buildCalendarLegend();
-  renderStep(0);
-  drawCharts();
+// Utilities
+function buildCells(id, n) {
+  const c = document.getElementById(id);
+  for (let i = 0; i < n*n; i++) {
+    const d = document.createElement('div');
+    d.className = 'cell'; d.id = `${id}-${i}`;
+    const t = document.createElement('div'); t.className = 'tooltip'; d.appendChild(t);
+    c.appendChild(d);
+  }
+}
+function buildLegend(id) {
+  const l = document.getElementById(id);
+  for (let i = 0; i < NP; i++) {
+    const it = document.createElement('div'); it.className='phase-legend-item';
+    const sw = document.createElement('div'); sw.className='phase-swatch'; sw.style.background=PC[i];
+    const lb = document.createElement('span'); lb.textContent=PN[i];
+    it.appendChild(sw); it.appendChild(lb); l.appendChild(it);
+  }
+}
+function yieldColor(y) {
+  const r = Math.max(0,Math.min(1,y/YMAX));
+  const idx = r*(YC.length-1); const lo=Math.floor(idx); const hi=Math.min(lo+1,YC.length-1); const t=idx-lo;
+  return `rgb(${Math.round(YC[lo][0]*(1-t)+YC[hi][0]*t)},${Math.round(YC[lo][1]*(1-t)+YC[hi][1]*t)},${Math.round(YC[lo][2]*(1-t)+YC[hi][2]*t)})`;
+}
+function drawRing(svgId, yrId, counts, step) {
+  const svg=document.getElementById(svgId);
+  document.getElementById(yrId).textContent=step;
+  const cx=140,cy=140,oR=120,iR=65;
+  const total=counts.reduce((a,b)=>a+b,0);
+  let s='', sa=-Math.PI/2;
+  for(let i=0;i<NP;i++){
+    const f=counts[i]/total; if(f<=0){sa+=f*2*Math.PI;continue;}
+    const ea=sa+f*2*Math.PI; const la=(ea-sa)>Math.PI?1:0;
+    const x1o=cx+oR*Math.cos(sa),y1o=cy+oR*Math.sin(sa);
+    const x2o=cx+oR*Math.cos(ea),y2o=cy+oR*Math.sin(ea);
+    const x1i=cx+iR*Math.cos(ea),y1i=cy+iR*Math.sin(ea);
+    const x2i=cx+iR*Math.cos(sa),y2i=cy+iR*Math.sin(sa);
+    s+=`<path d="M${x1o},${y1o} A${oR},${oR} 0 ${la},1 ${x2o},${y2o} L${x1i},${y1i} A${iR},${iR} 0 ${la},0 ${x2i},${y2i} Z" fill="${PC[i]}" stroke="#faf8f5" stroke-width="1.5"/>`;
+    if(f>0.04){const pR=(oR+iR)/2;const ma=(sa+ea)/2;const px=cx+pR*Math.cos(ma),py=cy+pR*Math.sin(ma);
+      s+=`<text x="${px}" y="${py}" font-size="11" fill="#fff" text-anchor="middle" dominant-baseline="central">${Math.round(f*100)}%</text>`;}
+    if(f>0.06){const ma=(sa+ea)/2;const lR=oR+6;const lx=cx+lR*Math.cos(ma),ly=cy+lR*Math.sin(ma);
+      const deg=ma*180/Math.PI;const rot=(deg>90||deg<-90)?deg+180:deg;const anc=(deg>90||deg<-90)?'end':'start';
+      s+=`<text x="${lx}" y="${ly}" font-size="7" fill="#966D5E" text-anchor="${anc}" dominant-baseline="central" transform="rotate(${rot},${lx},${ly})">${RN[i]}</text>`;}
+    sa=ea;
+  }
+  s+=`<circle cx="${cx}" cy="${cy}" r="${iR-1}" fill="#faf8f5"/>`;
+  svg.innerHTML=s;
+}
+function drawLineChart(canvasId, data, getY, color, maxY, currentStep, bandLo, bandHi, line2data, line2color) {
+  const cv=document.getElementById(canvasId); const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1; cv.width=cv.offsetWidth*dpr; cv.height=cv.offsetHeight*dpr;
+  ctx.scale(dpr,dpr);
+  const w=cv.offsetWidth,h=cv.offsetHeight;
+  const p={t:16,r:16,b:24,l:44}; const pw=w-p.l-p.r,ph=h-p.t-p.b;
+  ctx.clearRect(0,0,w,h);
+  // Grid
+  ctx.strokeStyle='#ece5dd'; ctx.lineWidth=1; ctx.font='10px system-ui'; ctx.fillStyle='#b0a090'; ctx.textAlign='right';
+  const steps = maxY <= 1 ? 5 : Math.ceil(maxY/2);
+  for(let i=0;i<=steps;i++){
+    const v=maxY*i/steps; const yy=p.t+ph-(v/maxY)*ph;
+    ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();
+    ctx.fillText(maxY<=1?(v*100).toFixed(0)+'%':v.toFixed(0),p.l-4,yy+3);
+  }
+  // Band
+  if(bandLo&&bandHi){
+    ctx.fillStyle='#F8CDAC60'; ctx.beginPath();
+    for(let i=0;i<data.length;i++){const x=p.l+(i/(data.length-1))*pw;const y=p.t+ph-(bandHi(data[i])/maxY)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    for(let i=data.length-1;i>=0;i--){const x=p.l+(i/(data.length-1))*pw;const y=p.t+ph-(bandLo(data[i])/maxY)*ph;ctx.lineTo(x,y);}
+    ctx.closePath();ctx.fill();
+  }
+  // Line 1
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+  for(let i=0;i<data.length;i++){const x=p.l+(i/(data.length-1))*pw;const y=p.t+ph-(getY(data[i])/maxY)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.stroke();
+  // Line 2
+  if(line2data){
+    ctx.strokeStyle=line2color; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<data.length;i++){const x=p.l+(i/(data.length-1))*pw;const y=p.t+ph-(line2data(data[i])/maxY)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+  }
+  // Marker
+  if(currentStep!==undefined){
+    const cx2=p.l+(currentStep/(data.length-1))*pw;
+    ctx.strokeStyle='#7A403380';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(cx2,p.t);ctx.lineTo(cx2,p.t+ph);ctx.stroke();ctx.setLineDash([]);
+  }
 }
 
-function buildGrid(id) {
-  const container = document.getElementById(id);
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.id = `${id}-${r}-${c}`;
-      const tip = document.createElement('div');
-      tip.className = 'tooltip';
-      cell.appendChild(tip);
-      container.appendChild(cell);
+function statsHTML(labels) {
+  return labels.map(([id,lab])=>`<div class="stat-card"><div class="stat-value" id="${id}">--</div><div class="stat-label">${lab}</div></div>`).join('');
+}
+
+// =============== MODEL 1 ===============
+const m1 = {
+  data: SIM.model1, step: 0, playing: false, iv: null,
+  init() {
+    document.getElementById('m1-stats').innerHTML = statsHTML([['m1-y','平均収量(t/ha)'],['m1-p','害虫被害'],['m1-w','水ストレス'],['m1-s','同期度'],['m1-e','収量効率']]);
+    buildCells('m1-phase',12); buildCells('m1-yield',12); buildLegend('m1-legend');
+    this.render(0);
+  },
+  render(s) {
+    this.step=s; const d=this.data[s];
+    document.getElementById('m1-step').textContent=`第${s}年`;
+    document.getElementById('m1-slider').value=s;
+    document.getElementById('m1-y').textContent=d.avg_yield.toFixed(2);
+    document.getElementById('m1-p').textContent=(d.avg_pest*100).toFixed(1)+'%';
+    document.getElementById('m1-w').textContent=(d.avg_water*100).toFixed(1)+'%';
+    document.getElementById('m1-s').textContent=(d.synchrony*100).toFixed(0)+'%';
+    document.getElementById('m1-e').textContent=((d.avg_yield/YMAX)*100).toFixed(1)+'%';
+    for(let r=0;r<12;r++) for(let c=0;c<12;c++){
+      const i=r*12+c; const ph=d.phases[r][c]; const yl=d.yields[r][c];
+      const ce=document.getElementById('m1-phase-'+i);
+      ce.style.background=PC[ph]; ce.querySelector('.tooltip').textContent=`(${r},${c}) ${PN[ph]} ${yl}t/ha`;
+      const ye=document.getElementById('m1-yield-'+i);
+      ye.style.background=yieldColor(yl); ye.querySelector('.tooltip').textContent=`(${r},${c}) ${yl}t/ha`;
     }
+    drawRing('m1-cal','m1-cal-yr',d.phase_counts,s);
+    drawLineChart('m1-yc',this.data,d=>d.avg_yield,'#783c28',YMAX,s,d=>d.min_yield,d=>d.max_yield);
+    drawLineChart('m1-lc',this.data,d=>d.avg_pest,'#DC8766',0.5,s,null,null,d=>d.avg_water,'#CEA26F');
+  },
+  go(s){this.render(s);}, reset(){if(this.playing)this.toggle();this.render(0);},
+  toggle(){
+    if(this.playing){clearInterval(this.iv);this.playing=false;document.getElementById('m1-play').textContent='再生';document.getElementById('m1-play').classList.remove('active');}
+    else{this.playing=true;document.getElementById('m1-play').textContent='一時停止';document.getElementById('m1-play').classList.add('active');
+      this.iv=setInterval(()=>{if(this.step>=this.data.length-1){this.toggle();return;}this.render(this.step+1);},400);}
   }
-}
+};
 
-function buildPhaseLegend() {
-  const legend = document.getElementById('phase-legend');
-  for (let i = 0; i < N_PHASES; i++) {
-    const item = document.createElement('div');
-    item.className = 'phase-legend-item';
-    const swatch = document.createElement('div');
-    swatch.className = 'phase-swatch';
-    swatch.style.background = PHASE_COLORS[i];
-    const label = document.createElement('span');
-    label.className = 'phase-label-text';
-    label.textContent = PHASE_NAMES[i];
-    item.appendChild(swatch);
-    item.appendChild(label);
-    legend.appendChild(item);
-  }
-}
-
-function buildCalendarLegend() {
-  const legend = document.getElementById('cal-legend');
-  for (let i = 0; i < N_PHASES; i++) {
-    const item = document.createElement('div');
-    item.className = 'calendar-legend-item';
-    const dot = document.createElement('div');
-    dot.className = 'chart-dot';
-    dot.style.background = PHASE_COLORS[i];
-    const label = document.createElement('span');
-    label.textContent = PHASE_NAMES[i];
-    item.appendChild(dot);
-    item.appendChild(label);
-    legend.appendChild(item);
-  }
-}
-
-function renderStep(step) {
-  const d = DATA[step];
-  currentStep = step;
-
-  document.getElementById('step-label').textContent = `第${step}年`;
-  document.getElementById('slider').value = step;
-
-  // Stats
-  document.getElementById('stat-yield').textContent = d.avg_yield.toFixed(2);
-  document.getElementById('stat-pest').textContent = (d.avg_pest_loss * 100).toFixed(1) + '%';
-  document.getElementById('stat-water').textContent = (d.avg_water_loss * 100).toFixed(1) + '%';
-  document.getElementById('stat-sync').textContent = (d.synchrony * 100).toFixed(0) + '%';
-  document.getElementById('stat-efficiency').textContent = ((d.avg_yield / Y_MAX) * 100).toFixed(1) + '%';
-
-  // Phase grid
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      const phase = d.phases[r][c];
-      const yld = d.yields[r][c];
-      const cell = document.getElementById(`phase-grid-${r}-${c}`);
-      cell.style.background = PHASE_COLORS[phase];
-      cell.querySelector('.tooltip').textContent =
-        `スバック(${r},${c}) ${PHASE_NAMES[phase]} 収量:${yld}t/ha`;
-    }
-  }
-
-  // Yield grid with Miratuku earth tones
-  const yieldColors = [
-    [176, 114, 86],   // low: amber brown
-    [206, 162, 111],  // mid-low: camel
-    [240, 190, 131],  // mid: sand gold
-    [242, 199, 146],  // mid-high: light beige
-    [248, 205, 172],  // high: pale peach
-  ];
-  for (let r = 0; r < GRID_SIZE; r++) {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      const yld = d.yields[r][c];
-      const ratio = Math.max(0, Math.min(1, yld / Y_MAX));
-      const idx = ratio * (yieldColors.length - 1);
-      const lo = Math.floor(idx);
-      const hi = Math.min(lo + 1, yieldColors.length - 1);
-      const t = idx - lo;
-      const r2 = Math.round(yieldColors[lo][0] * (1 - t) + yieldColors[hi][0] * t);
-      const g2 = Math.round(yieldColors[lo][1] * (1 - t) + yieldColors[hi][1] * t);
-      const b2 = Math.round(yieldColors[lo][2] * (1 - t) + yieldColors[hi][2] * t);
-      const cell = document.getElementById(`yield-grid-${r}-${c}`);
-      cell.style.background = `rgb(${r2},${g2},${b2})`;
-      cell.querySelector('.tooltip').textContent = `スバック(${r},${c}) 収量:${yld}t/ha`;
-    }
-  }
-
-  // Calendar ring
-  drawCalendarRing(d);
-
-  drawCharts();
-}
-
-function drawCalendarRing(d) {
-  const svg = document.getElementById('calendar-svg');
-  const cx = 160, cy = 160, outerR = 140, innerR = 80;
-  document.getElementById('cal-year').textContent = d.step;
-
-  let svgContent = '';
-  const total = GRID_SIZE * GRID_SIZE;
-  const counts = d.phase_counts;
-  let startAngle = -Math.PI / 2;
-
-  for (let i = 0; i < N_PHASES; i++) {
-    const fraction = counts[i] / total;
-    const endAngle = startAngle + fraction * 2 * Math.PI;
-
-    if (fraction > 0) {
-      const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
-      const x1o = cx + outerR * Math.cos(startAngle);
-      const y1o = cy + outerR * Math.sin(startAngle);
-      const x2o = cx + outerR * Math.cos(endAngle);
-      const y2o = cy + outerR * Math.sin(endAngle);
-      const x1i = cx + innerR * Math.cos(endAngle);
-      const y1i = cy + innerR * Math.sin(endAngle);
-      const x2i = cx + innerR * Math.cos(startAngle);
-      const y2i = cy + innerR * Math.sin(startAngle);
-
-      svgContent += `<path d="M${x1o},${y1o} A${outerR},${outerR} 0 ${largeArc},1 ${x2o},${y2o} L${x1i},${y1i} A${innerR},${innerR} 0 ${largeArc},0 ${x2i},${y2i} Z" fill="${PHASE_COLORS[i]}" stroke="#faf8f5" stroke-width="1.5"/>`;
-
-      // Ritual label on outside
-      const midAngle = (startAngle + endAngle) / 2;
-      const labelR = outerR + 8;
-      const lx = cx + labelR * Math.cos(midAngle);
-      const ly = cy + labelR * Math.sin(midAngle);
-      const deg = (midAngle * 180 / Math.PI);
-      const rotate = (deg > 90 || deg < -90) ? deg + 180 : deg;
-      const anchor = (deg > 90 || deg < -90) ? 'end' : 'start';
-
-      if (fraction > 0.06) {
-        svgContent += `<text x="${lx}" y="${ly}" font-size="8" fill="#966D5E" text-anchor="${anchor}" dominant-baseline="central" transform="rotate(${rotate},${lx},${ly})">${RITUAL_NAMES[i]}</text>`;
+// =============== MODEL 2 ===============
+const m2 = {
+  rules: SIM.model2.rules, net: SIM.model2.network, currentRule: 'copy_best', step: 0, playing: false, iv: null,
+  init() {
+    document.getElementById('m2-stats').innerHTML = statsHTML([['m2-y','平均収量(t/ha)'],['m2-p','害虫被害'],['m2-w','水ストレス'],['m2-s','同期度'],['m2-r','ルール']]);
+    this.buildWatershed();
+    this.render(0);
+  },
+  get data(){ return this.rules[this.currentRule]; },
+  buildWatershed() {
+    const cont = document.getElementById('m2-watershed');
+    cont.innerHTML = '';
+    const ls = this.net.level_sizes;
+    for(let lv=0; lv<ls.length; lv++){
+      const row = document.createElement('div'); row.className = 'ws-level';
+      for(let i=0; i<ls[lv]; i++){
+        const node = document.createElement('div'); node.className = 'ws-node';
+        const globalIdx = ls.slice(0,lv).reduce((a,b)=>a+b,0) + i;
+        node.id = 'm2-wn-'+globalIdx;
+        row.appendChild(node);
       }
-
-      // Percentage inside arc
-      if (fraction > 0.04) {
-        const pctR = (outerR + innerR) / 2;
-        const px = cx + pctR * Math.cos(midAngle);
-        const py = cy + pctR * Math.sin(midAngle);
-        svgContent += `<text x="${px}" y="${py}" font-size="11" fill="#fff" text-anchor="middle" dominant-baseline="central" font-weight="400">${Math.round(fraction * 100)}%</text>`;
+      cont.appendChild(row);
+    }
+  },
+  switchRule(rule) {
+    this.currentRule = rule;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    if(this.playing) this.toggle();
+    this.render(0);
+    document.getElementById('m2-slider').value=0;
+  },
+  render(s) {
+    this.step = s; const d = this.data[s];
+    const ruleNames = {copy_best:'最善模倣',satisfice:'満足化',random:'ランダム'};
+    document.getElementById('m2-step').textContent=`第${s}年`;
+    document.getElementById('m2-slider').value=s;
+    document.getElementById('m2-y').textContent=d.avg_yield.toFixed(2);
+    document.getElementById('m2-p').textContent=(d.avg_pest*100).toFixed(1)+'%';
+    document.getElementById('m2-w').textContent=(d.avg_water*100).toFixed(1)+'%';
+    document.getElementById('m2-s').textContent=(d.synchrony*100).toFixed(0)+'%';
+    document.getElementById('m2-r').textContent=ruleNames[this.currentRule];
+    // Watershed nodes
+    const ls = this.net.level_sizes;
+    for(let lv=0; lv<ls.length; lv++){
+      const phases = d.phases_by_level[String(lv)] || [];
+      const yields = d.yields_by_level[String(lv)] || [];
+      const base = ls.slice(0,lv).reduce((a,b)=>a+b,0);
+      for(let i=0; i<ls[lv]; i++){
+        const el = document.getElementById('m2-wn-'+(base+i));
+        if(el && phases[i] !== undefined){
+          el.style.background = PC[phases[i]];
+          el.textContent = yields[i] ? yields[i].toFixed(1) : '';
+        }
       }
     }
-    startAngle = endAngle;
+    drawRing('m2-cal','m2-cal-yr',d.phase_counts,s);
+    // 3-rule comparison chart
+    const cv=document.getElementById('m2-yc'); const ctx=cv.getContext('2d');
+    const dpr=window.devicePixelRatio||1; cv.width=cv.offsetWidth*dpr; cv.height=cv.offsetHeight*dpr;
+    ctx.scale(dpr,dpr);
+    const w=cv.offsetWidth,h=cv.offsetHeight;
+    const p={t:16,r:16,b:24,l:44}; const pw=w-p.l-p.r,ph=h-p.t-p.b;
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='#ece5dd';ctx.lineWidth=1;ctx.font='10px system-ui';ctx.fillStyle='#b0a090';ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=YMAX*i/4;const yy=p.t+ph-(v/YMAX)*ph;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();ctx.fillText(v.toFixed(0),p.l-4,yy+3);}
+    const ruleColors = {copy_best:'#783c28',satisfice:'#DC8766',random:'#966D5E'};
+    for(const [rule,color] of Object.entries(ruleColors)){
+      const rd=this.rules[rule];
+      ctx.strokeStyle=color;ctx.lineWidth=rule===this.currentRule?2.5:1.5;
+      if(rule!==this.currentRule){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+      ctx.beginPath();
+      for(let i=0;i<rd.length;i++){const x=p.l+(i/(rd.length-1))*pw;const y=p.t+ph-(rd[i].avg_yield/YMAX)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      ctx.stroke();ctx.setLineDash([]);
+    }
+    const cx2=p.l+(s/(this.data.length-1))*pw;ctx.strokeStyle='#7A403380';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(cx2,p.t);ctx.lineTo(cx2,p.t+ph);ctx.stroke();ctx.setLineDash([]);
+    // Loss chart
+    drawLineChart('m2-lc',this.data,d=>d.avg_pest,'#DC8766',0.5,s,null,null,d=>d.avg_water,'#CEA26F');
+  },
+  go(s){this.render(s);}, reset(){if(this.playing)this.toggle();this.render(0);},
+  toggle(){
+    if(this.playing){clearInterval(this.iv);this.playing=false;document.getElementById('m2-play').textContent='再生';document.getElementById('m2-play').classList.remove('active');}
+    else{this.playing=true;document.getElementById('m2-play').textContent='一時停止';document.getElementById('m2-play').classList.add('active');
+      this.iv=setInterval(()=>{if(this.step>=this.data.length-1){this.toggle();return;}this.render(this.step+1);},400);}
   }
+};
 
-  // Inner circle
-  svgContent += `<circle cx="${cx}" cy="${cy}" r="${innerR - 1}" fill="#faf8f5"/>`;
-
-  svg.innerHTML = svgContent;
-}
-
-function drawCharts() {
-  drawYieldChart();
-  drawLossChart();
-}
-
-function drawYieldChart() {
-  const canvas = document.getElementById('yield-chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * dpr;
-  canvas.height = canvas.offsetHeight * dpr;
-  ctx.scale(dpr, dpr);
-  const w = canvas.offsetWidth, h = canvas.offsetHeight;
-  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
-  const pw = w - pad.left - pad.right;
-  const ph = h - pad.top - pad.bottom;
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Grid lines
-  ctx.strokeStyle = '#ece5dd';
-  ctx.lineWidth = 1;
-  for (let y = 0; y <= Y_MAX; y += 2) {
-    const yy = pad.top + ph - (y / Y_MAX) * ph;
-    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
-    ctx.fillStyle = '#b0a090';
-    ctx.font = '11px system-ui';
-    ctx.textAlign = 'right';
-    ctx.fillText(y.toFixed(0), pad.left - 6, yy + 4);
+// =============== MODEL 3 ===============
+const m3 = {
+  data: SIM.model3, step: 0, playing: false, iv: null,
+  init() {
+    document.getElementById('m3-stats').innerHTML = statsHTML([['m3-n','スバック数'],['m3-y','平均収量(t/ha)'],['m3-p','害虫被害'],['m3-w','水ストレス'],['m3-l','最大深度']]);
+    this.render(0);
+  },
+  render(s) {
+    this.step=s; const d=this.data[s];
+    document.getElementById('m3-step').textContent=`第${s}年`;
+    document.getElementById('m3-slider').value=s;
+    document.getElementById('m3-n').textContent=d.n_subaks;
+    document.getElementById('m3-y').textContent=d.avg_yield.toFixed(2);
+    document.getElementById('m3-p').textContent=(d.avg_pest*100).toFixed(1)+'%';
+    document.getElementById('m3-w').textContent=(d.avg_water*100).toFixed(1)+'%';
+    document.getElementById('m3-l').textContent=d.max_level;
+    // Network viz
+    const cont = document.getElementById('m3-network'); cont.innerHTML='';
+    const byLevel = {};
+    for(const n of d.nodes){ if(!byLevel[n.level]) byLevel[n.level]=[]; byLevel[n.level].push(n); }
+    const maxLv = d.max_level;
+    for(let lv=0;lv<=maxLv;lv++){
+      const row = document.createElement('div'); row.className='ws-level';
+      const nodes = byLevel[lv]||[];
+      for(const n of nodes){
+        const el = document.createElement('div'); el.className='ws-node';
+        el.style.background = PC[n.phase];
+        el.style.width = '24px'; el.style.height = '24px';
+        el.style.fontSize = '8px';
+        el.title = `ID:${n.id} ${PN[n.phase]} ${n.yield}t/ha 誕生:第${n.born_step}年`;
+        if(n.born_step === s && s > 0) { el.style.outline = '2px solid var(--accent)'; }
+        row.appendChild(el);
+      }
+      cont.appendChild(row);
+    }
+    // Growth chart
+    const cv=document.getElementById('m3-gc');const ctx=cv.getContext('2d');
+    const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=cv.offsetHeight*dpr;
+    ctx.scale(dpr,dpr);
+    const w=cv.offsetWidth,h=cv.offsetHeight;
+    const p={t:16,r:44,b:24,l:44};const pw=w-p.l-p.r,ph=h-p.t-p.b;
+    ctx.clearRect(0,0,w,h);
+    const maxN=Math.max(...this.data.map(d=>d.n_subaks));
+    ctx.strokeStyle='#ece5dd';ctx.lineWidth=1;ctx.font='10px system-ui';ctx.fillStyle='#b0a090';ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=maxN*i/4;const yy=p.t+ph-(v/maxN)*ph;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();ctx.fillText(Math.round(v),p.l-4,yy+3);}
+    // Subak count
+    ctx.strokeStyle='#B07256';ctx.lineWidth=2;ctx.beginPath();
+    for(let i=0;i<this.data.length;i++){const x=p.l+(i/(this.data.length-1))*pw;const y=p.t+ph-(this.data[i].n_subaks/maxN)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+    // Yield on right axis
+    ctx.textAlign='left';
+    for(let i=0;i<=4;i++){const v=YMAX*i/4;const yy=p.t+ph-(v/YMAX)*ph;ctx.fillStyle='#b0a090';ctx.fillText(v.toFixed(0),w-p.r+4,yy+3);}
+    ctx.strokeStyle='#783c28';ctx.lineWidth=2;ctx.beginPath();
+    for(let i=0;i<this.data.length;i++){const x=p.l+(i/(this.data.length-1))*pw;const y=p.t+ph-(this.data[i].avg_yield/YMAX)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+    const cx2=p.l+(s/(this.data.length-1))*pw;ctx.strokeStyle='#7A403380';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(cx2,p.t);ctx.lineTo(cx2,p.t+ph);ctx.stroke();ctx.setLineDash([]);
+    // Yield + Loss charts
+    drawLineChart('m3-yc',this.data,d=>d.avg_yield,'#783c28',YMAX,s,d=>d.min_yield,d=>d.max_yield);
+    drawLineChart('m3-lc',this.data,d=>d.avg_pest,'#DC8766',0.5,s,null,null,d=>d.avg_water,'#CEA26F');
+  },
+  go(s){this.render(s);}, reset(){if(this.playing)this.toggle();this.render(0);},
+  toggle(){
+    if(this.playing){clearInterval(this.iv);this.playing=false;document.getElementById('m3-play').textContent='再生';document.getElementById('m3-play').classList.remove('active');}
+    else{this.playing=true;document.getElementById('m3-play').textContent='一時停止';document.getElementById('m3-play').classList.add('active');
+      this.iv=setInterval(()=>{if(this.step>=this.data.length-1){this.toggle();return;}this.render(this.step+1);},400);}
   }
+};
 
-  // Min/Max band
-  ctx.fillStyle = '#F8CDAC80';
-  ctx.beginPath();
-  for (let i = 0; i < DATA.length; i++) {
-    const x = pad.left + (i / (DATA.length - 1)) * pw;
-    const y = pad.top + ph - (DATA[i].max_yield / Y_MAX) * ph;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  for (let i = DATA.length - 1; i >= 0; i--) {
-    const x = pad.left + (i / (DATA.length - 1)) * pw;
-    const y = pad.top + ph - (DATA[i].min_yield / Y_MAX) * ph;
-    ctx.lineTo(x, y);
-  }
-  ctx.closePath(); ctx.fill();
-
-  // Average line
-  ctx.strokeStyle = '#783c28';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  for (let i = 0; i < DATA.length; i++) {
-    const x = pad.left + (i / (DATA.length - 1)) * pw;
-    const y = pad.top + ph - (DATA[i].avg_yield / Y_MAX) * ph;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // Current marker
-  const cx2 = pad.left + (currentStep / (DATA.length - 1)) * pw;
-  ctx.strokeStyle = '#7A4033';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 3]);
-  ctx.beginPath(); ctx.moveTo(cx2, pad.top); ctx.lineTo(cx2, pad.top + ph); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Dot on current
-  const cy2 = pad.top + ph - (DATA[currentStep].avg_yield / Y_MAX) * ph;
-  ctx.fillStyle = '#783c28';
-  ctx.beginPath(); ctx.arc(cx2, cy2, 4, 0, Math.PI * 2); ctx.fill();
-}
-
-function drawLossChart() {
-  const canvas = document.getElementById('loss-chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * dpr;
-  canvas.height = canvas.offsetHeight * dpr;
-  ctx.scale(dpr, dpr);
-  const w = canvas.offsetWidth, h = canvas.offsetHeight;
-  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
-  const pw = w - pad.left - pad.right;
-  const ph = h - pad.top - pad.bottom;
-
-  ctx.clearRect(0, 0, w, h);
-
-  ctx.strokeStyle = '#ece5dd';
-  ctx.lineWidth = 1;
-  for (let y = 0; y <= 0.5; y += 0.1) {
-    const yy = pad.top + ph - (y / 0.5) * ph;
-    ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
-    ctx.fillStyle = '#b0a090';
-    ctx.font = '11px system-ui';
-    ctx.textAlign = 'right';
-    ctx.fillText((y * 100).toFixed(0) + '%', pad.left - 6, yy + 4);
-  }
-
-  // Pest line
-  ctx.strokeStyle = '#DC8766';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  for (let i = 0; i < DATA.length; i++) {
-    const x = pad.left + (i / (DATA.length - 1)) * pw;
-    const y = pad.top + ph - (DATA[i].avg_pest_loss / 0.5) * ph;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // Water line
-  ctx.strokeStyle = '#CEA26F';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  for (let i = 0; i < DATA.length; i++) {
-    const x = pad.left + (i / (DATA.length - 1)) * pw;
-    const y = pad.top + ph - (DATA[i].avg_water_loss / 0.5) * ph;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // Current marker
-  const cx2 = pad.left + (currentStep / (DATA.length - 1)) * pw;
-  ctx.strokeStyle = '#7A4033';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 3]);
-  ctx.beginPath(); ctx.moveTo(cx2, pad.top); ctx.lineTo(cx2, pad.top + ph); ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-function goToStep(step) { renderStep(step); }
-
-function togglePlay() {
-  if (playing) {
-    clearInterval(playInterval);
-    playing = false;
-    document.getElementById('btn-play').textContent = '再生';
-    document.getElementById('btn-play').classList.remove('active');
-  } else {
-    playing = true;
-    document.getElementById('btn-play').textContent = '一時停止';
-    document.getElementById('btn-play').classList.add('active');
-    playInterval = setInterval(() => {
-      if (currentStep >= DATA.length - 1) { togglePlay(); return; }
-      renderStep(currentStep + 1);
-    }, 500);
-  }
-}
-
-function resetSim() {
-  if (playing) togglePlay();
-  renderStep(0);
-}
-
-window.addEventListener('resize', drawCharts);
-init();
+// Init all
+m1.init(); m2.init(); m3.init();
+window.addEventListener('resize',()=>{m1.render(m1.step);m2.render(m2.step);m3.render(m3.step);});
 </script>
-
 </body>
 </html>
