@@ -500,6 +500,268 @@ def run_model3():
 
 
 # ============================================================
+# MODEL 4: Temple Network Experiment
+# ============================================================
+
+def run_model4():
+    """
+    Comparative experiment: same 12x12 watershed, 5 scenarios showing
+    the effect of temple networks and rituals on coordination.
+
+    Scenarios:
+      A) no_temple:     Pure individual learning, no coordination beyond neighbors
+      B) local_temple:  Small temple groups (4x3 blocks), ritual every 3 years
+      C) hierarchy:     3-tier temple hierarchy, ritual every 2 years
+      D) green_rev:     Hierarchy exists but overridden by government policy (force triple cropping)
+      E) restored:      Green Revolution for 15 years, then temples restored
+
+    Temple mechanics:
+      - Ritual event: all subaks in a temple group share info about
+        the best-performing phase in their group
+      - Higher temples aggregate info across lower temples
+      - Ritual frequency: how often this sharing occurs
+    """
+    GRID = 12
+    STEPS = 60
+
+    # Define temple groups: 12 local temples (4x3 blocks)
+    def get_temple_group(r, c):
+        return (r // 3) * 4 + (c // 3)
+
+    # Regional temples: 4 regions (top-left, top-right, bottom-left, bottom-right)
+    def get_region(r, c):
+        return (0 if r < 6 else 2) + (0 if c < 6 else 1)
+
+    N_LOCAL_TEMPLES = 16
+    N_REGIONS = 4
+
+    def neighbors(r, c):
+        nb = []
+        for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+            nr, nc = r+dr, c+dc
+            if 0 <= nr < GRID and 0 <= nc < GRID:
+                nb.append((nr, nc))
+        return nb
+
+    def calc_yields(grid):
+        for r in range(GRID):
+            for c in range(GRID):
+                s = grid[r][c]
+                # Pest
+                nb = neighbors(r, c)
+                sync = 0
+                for nr, nc in nb:
+                    diff = abs(grid[nr][nc]["phase"] - s["phase"])
+                    diff = min(diff, N_PHASES - diff)
+                    if diff <= 1:
+                        sync += 1
+                ratio = sync / len(nb) if nb else 0
+                pest = PEST_SYNC_MAX - (PEST_SYNC_MAX - PEST_SYNC_MIN) * ratio
+
+                # Water
+                upstream_same = sum(1 for ur in range(r) for uc in range(GRID)
+                                   if grid[ur][uc]["phase"] == s["phase"])
+                upstream_total = r * GRID
+                if upstream_total == 0:
+                    water = 0
+                else:
+                    water = (upstream_same / upstream_total) * (r / (GRID-1)) * 0.8
+
+                s["pest"] = pest
+                s["water"] = min(water, 0.9)
+                s["yield"] = Y_MAX * (1 - ALPHA * pest) * (1 - BETA * s["water"])
+
+    def individual_update(grid):
+        """Base learning: copy best immediate neighbor."""
+        new_p = [[0]*GRID for _ in range(GRID)]
+        for r in range(GRID):
+            for c in range(GRID):
+                if random.random() < MUTATION_RATE:
+                    new_p[r][c] = random.randint(0, N_PHASES-1)
+                    continue
+                best_y = grid[r][c]["yield"]
+                best_ph = grid[r][c]["phase"]
+                for nr, nc in neighbors(r, c):
+                    if grid[nr][nc]["yield"] > best_y:
+                        best_y = grid[nr][nc]["yield"]
+                        best_ph = grid[nr][nc]["phase"]
+                new_p[r][c] = best_ph
+        for r in range(GRID):
+            for c in range(GRID):
+                grid[r][c]["phase"] = new_p[r][c]
+
+    def local_temple_ritual(grid):
+        """Local temple ritual: find best phase in each temple group, share it."""
+        group_best = {}
+        for r in range(GRID):
+            for c in range(GRID):
+                g = get_temple_group(r, c)
+                if g not in group_best or grid[r][c]["yield"] > group_best[g][1]:
+                    group_best[g] = (grid[r][c]["phase"], grid[r][c]["yield"])
+        # Each subak in group adopts the group's best phase (with some probability)
+        for r in range(GRID):
+            for c in range(GRID):
+                g = get_temple_group(r, c)
+                if g in group_best and random.random() < 0.7:  # 70% adoption at ritual
+                    grid[r][c]["phase"] = group_best[g][0]
+
+    def regional_temple_ritual(grid):
+        """Regional temples coordinate between local temple groups.
+        Hierarchy: local temple finds best in group, regional picks best
+        among locals, supreme picks best overall. Info flows down with
+        weighted blending — local influence strongest, supreme weakest."""
+        # Local temples: best in each group
+        group_best = {}
+        for r in range(GRID):
+            for c in range(GRID):
+                g = get_temple_group(r, c)
+                if g not in group_best or grid[r][c]["yield"] > group_best[g][1]:
+                    group_best[g] = (grid[r][c]["phase"], grid[r][c]["yield"])
+
+        # Regional temples: best among their local temples
+        region_groups = {}
+        for r in range(GRID):
+            for c in range(GRID):
+                reg = get_region(r, c)
+                g = get_temple_group(r, c)
+                if reg not in region_groups:
+                    region_groups[reg] = set()
+                region_groups[reg].add(g)
+
+        region_best = {}
+        for reg, groups in region_groups.items():
+            best = None
+            for g in groups:
+                if g in group_best:
+                    if best is None or group_best[g][1] > best[1]:
+                        best = group_best[g]
+            if best:
+                region_best[reg] = best
+
+        # Supreme temple: best overall
+        supreme_best = max(region_best.values(), key=lambda x: x[1]) if region_best else None
+
+        # Disseminate with layered influence:
+        # Each subak first gets local temple guidance (strong),
+        # then regional modulates it, then supreme provides weak nudge.
+        for r in range(GRID):
+            for c in range(GRID):
+                g = get_temple_group(r, c)
+                reg = get_region(r, c)
+                roll = random.random()
+
+                if roll < 0.55 and g in group_best:
+                    # Local temple influence (55%): adopt group's best
+                    grid[r][c]["phase"] = group_best[g][0]
+                elif roll < 0.80 and reg in region_best:
+                    # Regional temple influence (25%): adopt region's best
+                    grid[r][c]["phase"] = region_best[reg][0]
+                elif roll < 0.90 and supreme_best:
+                    # Supreme temple influence (10%): adopt overall best
+                    grid[r][c]["phase"] = supreme_best[0]
+                # else: keep current phase (10% — individual persistence)
+
+    def green_revolution_override(grid):
+        """Government forces all subaks to same planting schedule (phase 0)."""
+        for r in range(GRID):
+            for c in range(GRID):
+                # Some compliance noise
+                if random.random() < 0.85:
+                    grid[r][c]["phase"] = 0  # Forced synchronization
+                else:
+                    grid[r][c]["phase"] = random.randint(0, N_PHASES-1)
+
+    def snapshot(grid, step):
+        yields = [grid[r][c]["yield"] for r in range(GRID) for c in range(GRID)]
+        phases = [grid[r][c]["phase"] for r in range(GRID) for c in range(GRID)]
+        phase_counts = [0]*N_PHASES
+        for p in phases:
+            phase_counts[p] += 1
+
+        # Temple group yields
+        tg_yields = {}
+        for r in range(GRID):
+            for c in range(GRID):
+                g = get_temple_group(r, c)
+                if g not in tg_yields:
+                    tg_yields[g] = []
+                tg_yields[g].append(grid[r][c]["yield"])
+        temple_avg = {str(g): round(sum(ys)/len(ys), 2) for g, ys in tg_yields.items()}
+
+        return {
+            "step": step,
+            "avg_yield": round(sum(yields)/len(yields), 3),
+            "min_yield": round(min(yields), 3),
+            "max_yield": round(max(yields), 3),
+            "avg_pest": round(sum(grid[r][c]["pest"] for r in range(GRID) for c in range(GRID))/(GRID*GRID), 4),
+            "avg_water": round(sum(grid[r][c]["water"] for r in range(GRID) for c in range(GRID))/(GRID*GRID), 4),
+            "phase_counts": phase_counts,
+            "synchrony": compute_synchrony(phases),
+            "phases": [[grid[r][c]["phase"] for c in range(GRID)] for r in range(GRID)],
+            "yields": [[round(grid[r][c]["yield"], 2) for c in range(GRID)] for r in range(GRID)],
+            "temple_avg": temple_avg,
+        }
+
+    def make_grid():
+        return [[{"phase": random.randint(0, N_PHASES-1), "yield":0, "pest":0, "water":0}
+                 for c in range(GRID)] for r in range(GRID)]
+
+    # Use same initial state for fair comparison
+    seed_phases = [[random.randint(0, N_PHASES-1) for c in range(GRID)] for r in range(GRID)]
+
+    results = {}
+    scenarios = {
+        "no_temple": {"ritual": None, "ritual_freq": 0, "green_rev": False, "restore_at": None},
+        "local_temple": {"ritual": "local", "ritual_freq": 3, "green_rev": False, "restore_at": None},
+        "hierarchy": {"ritual": "hierarchy", "ritual_freq": 2, "green_rev": False, "restore_at": None},
+        "green_rev": {"ritual": "hierarchy", "ritual_freq": 2, "green_rev": True, "restore_at": None},
+        "restored": {"ritual": "hierarchy", "ritual_freq": 2, "green_rev": True, "restore_at": 20},
+    }
+
+    for name, cfg in scenarios.items():
+        grid = make_grid()
+        # Apply same initial phases
+        for r in range(GRID):
+            for c in range(GRID):
+                grid[r][c]["phase"] = seed_phases[r][c]
+
+        hist = []
+        green_active = False
+
+        for step in range(STEPS):
+            calc_yields(grid)
+            hist.append(snapshot(grid, step))
+
+            # Determine if green revolution is active this step
+            if cfg["green_rev"]:
+                if cfg["restore_at"] is not None:
+                    green_active = step < cfg["restore_at"]
+                else:
+                    green_active = True
+
+            if green_active:
+                green_revolution_override(grid)
+            else:
+                # Individual learning
+                individual_update(grid)
+                # Temple rituals
+                if cfg["ritual"] and cfg["ritual_freq"] > 0 and step % cfg["ritual_freq"] == 0:
+                    if cfg["ritual"] == "local":
+                        local_temple_ritual(grid)
+                    elif cfg["ritual"] == "hierarchy":
+                        regional_temple_ritual(grid)
+
+        results[name] = hist
+
+    # Temple group structure for visualization
+    temple_map = [[get_temple_group(r, c) for c in range(GRID)] for r in range(GRID)]
+    region_map = [[get_region(r, c) for c in range(GRID)] for r in range(GRID)]
+
+    return results, {"temple_map": temple_map, "region_map": region_map,
+                     "n_local": N_LOCAL_TEMPLES, "n_regions": N_REGIONS}
+
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -529,11 +791,20 @@ def main():
     print(f"    Step 79: {h3[-1]['n_subaks']} subaks, yield={h3[-1]['avg_yield']:.2f}")
     print()
 
+    # Model 4
+    print("  [Model 4] Temple Network Experiment — 5 scenarios")
+    h4, tinfo = run_model4()
+    for name in ["no_temple", "local_temple", "hierarchy", "green_rev", "restored"]:
+        h = h4[name]
+        print(f"    {name:14s}: yield {h[0]['avg_yield']:.2f} -> {h[-1]['avg_yield']:.2f}")
+    print()
+
     # Build combined data
     sim_data = {
         "model1": h1,
         "model2": {"rules": h2, "network": net2},
         "model3": h3,
+        "model4": {"scenarios": h4, "temple_info": tinfo},
     }
 
     html_path = Path(__file__).parent / 'template.html'

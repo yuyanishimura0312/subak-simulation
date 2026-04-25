@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スバック灌漑シミュレーション — 三つのモデル</title>
+<title>スバック灌漑シミュレーション — 四つのモデル</title>
 <style>
 :root {
   --m-golden-orange: #F0A671;
@@ -134,7 +134,7 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
 
 <div class="header">
   <h1>スバック灌漑シミュレーション</h1>
-  <p class="sub">水と儀礼の自己組織化 — バリ島水寺院ネットワークの創発を三つのモデルで探る</p>
+  <p class="sub">水と儀礼の自己組織化 — バリ島水寺院ネットワークの創発を四つのモデルで探る</p>
 </div>
 
 <!-- ============================================================ -->
@@ -371,6 +371,145 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
 <hr class="sep">
 
 <!-- ============================================================ -->
+<!-- MODEL 4: Temple Network Experiment -->
+<!-- ============================================================ -->
+
+<div class="section" id="model4-section">
+  <h2 class="section-title"><span class="model-badge" style="background:var(--m-warm-brown);">Model 4</span> 寺院ネットワーク実験 — 儀礼がなければどうなるか</h2>
+  <p class="prose">Model 1-3は水寺院の調整機能を暗黙的に含んでいましたが、その効果を直接的に示していませんでした。このModel 4は、<strong>同一の流域で5つのシナリオを同時に走らせ、寺院と儀礼の存在がシステム全体のパフォーマンスにどれほど影響するかを直接比較</strong>する実験です。</p>
+
+  <div class="card">
+    <p class="sub-title">5つのシナリオ</p>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:8px;">シナリオ</th>
+          <th style="text-align:left;padding:8px;">寺院構造</th>
+          <th style="text-align:left;padding:8px;">儀礼頻度</th>
+          <th style="text-align:left;padding:8px;">外部介入</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong style="color:var(--m-warm-brown);">A. 寺院なし</strong></td>
+          <td style="padding:8px;">なし</td>
+          <td style="padding:8px;">なし</td>
+          <td style="padding:8px;">なし</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong style="color:var(--m-camel);">B. 地方寺院のみ</strong></td>
+          <td style="padding:8px;">16の地方寺院</td>
+          <td style="padding:8px;">3年ごと</td>
+          <td style="padding:8px;">なし</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong style="color:var(--accent);">C. 三層階層</strong></td>
+          <td style="padding:8px;">地方(16) + 地域(4) + 最高寺院(1)</td>
+          <td style="padding:8px;">2年ごと</td>
+          <td style="padding:8px;">なし</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;"><strong style="color:var(--m-terracotta);">D. 緑の革命</strong></td>
+          <td style="padding:8px;">存在するが無視</td>
+          <td style="padding:8px;">停止</td>
+          <td style="padding:8px;">政府が全面同期を強制</td>
+        </tr>
+        <tr>
+          <td style="padding:8px;"><strong style="color:var(--m-golden-orange);">E. 寺院の復活</strong></td>
+          <td style="padding:8px;">20年後に三層階層を復活</td>
+          <td style="padding:8px;">復活後2年ごと</td>
+          <td style="padding:8px;">最初の20年のみ強制</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <p class="sub-title">儀礼のメカニズム（モデル上の実装）</p>
+    <p class="prose"><strong>儀礼 = 情報共有プロトコル</strong>として実装しています。儀礼の際、寺院に所属するスバックの代表者が集まり、その寺院管轄内で最も収量の高いスバックの作付け戦略が共有されます。参加者の70%がこの情報を採用します。</p>
+    <p class="prose"><strong>三層の階層構造</strong>では、地方寺院→地域寺院→最高寺院へと情報が集約され、逆方向に広く拡散します。最高寺院の影響は弱いが広域（30%採用率）、地方寺院の影響は強いが局所的（70%採用率）です。この多層的な情報フローが、異なるスケールの問題を同時に解決することを可能にします。</p>
+    <p class="prose" style="margin-bottom:0;"><strong>「緑の革命」シナリオ</strong>では、政府が85%のスバックに対してフェーズ0（同一時期の一斉植え付け）を強制します。これは害虫に対しては極めて有効ですが、水需要が一点に集中するため、特に下流のスバックが壊滅的な水不足に陥ります。</p>
+  </div>
+
+  <div class="tab-bar" id="m4-tabs">
+    <button class="tab-btn active" onclick="m4.switchScenario('no_temple')">寺院なし</button>
+    <button class="tab-btn" onclick="m4.switchScenario('local_temple')">地方寺院</button>
+    <button class="tab-btn" onclick="m4.switchScenario('hierarchy')">三層階層</button>
+    <button class="tab-btn" onclick="m4.switchScenario('green_rev')">緑の革命</button>
+    <button class="tab-btn" onclick="m4.switchScenario('restored')">寺院の復活</button>
+  </div>
+  <div class="tab-content active" id="m4-tab">
+    <div class="stats-row" id="m4-stats"></div>
+    <div class="controls">
+      <button id="m4-play" onclick="m4.toggle()">再生</button>
+      <button onclick="m4.reset()">リセット</button>
+      <input type="range" id="m4-slider" min="0" max="59" value="0" oninput="m4.go(+this.value)">
+      <span class="step-label" id="m4-step">第0年</span>
+    </div>
+
+    <div class="grid-row">
+      <div class="grid-panel">
+        <h3>作付けフェーズ（寺院管轄区域の境界線つき）</h3>
+        <div class="water-label">&#x25B2; 上流</div>
+        <div class="grid" id="m4-phase" style="grid-template-columns:repeat(12,1fr);"></div>
+        <div class="water-label">&#x25BC; 下流</div>
+      </div>
+      <div class="grid-panel">
+        <h3>収量マップ</h3>
+        <div class="water-label">&#x25B2; 上流</div>
+        <div class="grid" id="m4-yield" style="grid-template-columns:repeat(12,1fr);"></div>
+        <div class="water-label">&#x25BC; 下流</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5-scenario yield comparison chart -->
+  <div class="card">
+    <h3 style="font-size:14px;font-weight:500;color:var(--text2);margin-bottom:12px;">5シナリオ収量比較</h3>
+    <canvas id="m4-compare" style="height:280px;"></canvas>
+    <div class="chart-legend" style="flex-wrap:wrap;">
+      <div class="chart-legend-item"><div class="cdot" style="background:var(--m-warm-brown);"></div>寺院なし</div>
+      <div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>地方寺院</div>
+      <div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>三層階層</div>
+      <div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>緑の革命</div>
+      <div class="chart-legend-item"><div class="cdot" style="background:var(--m-golden-orange);"></div>寺院の復活</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel"><h3>害虫被害の比較</h3><canvas id="m4-pest-cmp"></canvas>
+      <div class="chart-legend" style="flex-wrap:wrap;">
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-warm-brown);"></div>なし</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>地方</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>階層</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>革命</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-golden-orange);"></div>復活</div>
+      </div>
+    </div>
+    <div class="chart-panel"><h3>水ストレスの比較</h3><canvas id="m4-water-cmp"></canvas>
+      <div class="chart-legend" style="flex-wrap:wrap;">
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-warm-brown);"></div>なし</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-camel);"></div>地方</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--accent);"></div>階層</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-terracotta);"></div>革命</div>
+        <div class="chart-legend-item"><div class="cdot" style="background:var(--m-golden-orange);"></div>復活</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-title">実験結果が示すこと</div>
+    <p class="prose"><strong>寺院なし（シナリオA）</strong>では、隣人模倣だけで緩やかな自己組織化が起きますが、収束は遅く、最終的な収量は低いままです。情報が局所的にしか伝わらないため、流域全体の調整が困難です。</p>
+    <p class="prose"><strong>地方寺院のみ（シナリオB）</strong>では、3年ごとの儀礼による情報共有が収束を加速します。しかし、地方寺院間の調整がないため、異なる寺院管轄区域の境界で不整合が残ります。</p>
+    <p class="prose"><strong>三層階層（シナリオC）</strong>では、地方→地域→最高寺院の多層構造が、局所最適と広域調整の両方を達成します。最も高い収量と最も低い害虫被害を実現し、これがまさにバリ島の現実と一致するパターンです。</p>
+    <p class="prose"><strong>緑の革命（シナリオD）</strong>では、政府が全面同期を強制することで害虫は劇的に減りますが、水需要の極端な集中が下流に壊滅的な水不足をもたらします。トレードオフの一方を完全に無視した結果、全体の収量はかえって低下します。</p>
+    <p class="prose" style="margin-bottom:0;"><strong>寺院の復活（シナリオE）</strong>は最も重要な洞察を提供します。20年間の「緑の革命」で壊されたパターンが、寺院の儀礼を復活させることで回復に向かいます。しかし回復には時間がかかり、元の三層階層シナリオに追いつくまでに相当の年数を要します。これは、制度的知識の破壊がいかに長期的なコストを伴うかを如実に示しています。</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ============================================================ -->
 <!-- SYNTHESIS & CONCLUSION -->
 <!-- ============================================================ -->
 
@@ -385,6 +524,7 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
           <th style="text-align:left;padding:8px;">Model 1 (1993)</th>
           <th style="text-align:left;padding:8px;">Model 2 (2007)</th>
           <th style="text-align:left;padding:8px;">Model 3 (2009)</th>
+          <th style="text-align:left;padding:8px;">Model 4 (実験)</th>
         </tr>
       </thead>
       <tbody>
@@ -393,11 +533,13 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
           <td style="padding:8px;">格子（固定）</td>
           <td style="padding:8px;">流域DAG（固定）</td>
           <td style="padding:8px;">動的に成長</td>
+          <td style="padding:8px;">格子+寺院管轄</td>
         </tr>
         <tr style="border-bottom:1px solid var(--border);">
           <td style="padding:8px;color:var(--text2);">害虫モデル</td>
           <td style="padding:8px;">近隣同期のみ</td>
           <td style="padding:8px;">+水路伝播</td>
+          <td style="padding:8px;">近隣同期</td>
           <td style="padding:8px;">近隣同期</td>
         </tr>
         <tr style="border-bottom:1px solid var(--border);">
@@ -405,26 +547,29 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
           <td style="padding:8px;">最善模倣</td>
           <td style="padding:8px;">3ルール比較</td>
           <td style="padding:8px;">最善模倣+継承</td>
+          <td style="padding:8px;">模倣+儀礼共有</td>
         </tr>
         <tr style="border-bottom:1px solid var(--border);">
           <td style="padding:8px;color:var(--text2);">問いの核心</td>
           <td style="padding:8px;">自己組織化は起きるか？</td>
           <td style="padding:8px;">どの条件で頑健か？</td>
           <td style="padding:8px;">ネットワーク自体はどう生まれたか？</td>
+          <td style="padding:8px;">寺院がなければどうなるか？</td>
         </tr>
-        <tr>
+        <tr style="border-bottom:1px solid var(--border);">
           <td style="padding:8px;color:var(--text2);">検証手段</td>
           <td style="padding:8px;">空間パターン</td>
           <td style="padding:8px;">感度分析</td>
           <td style="padding:8px;">考古学+遺伝学</td>
+          <td style="padding:8px;">シナリオ比較</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <p class="prose">三つのモデルは、それぞれ異なる問いに答えています。Model 1は「単純なルールから秩序が生まれうるか」を問い、Model 2は「その秩序はどの条件下で壊れるか」を検証し、Model 3は「秩序を生むネットワーク自体がどう進化したか」を説明します。</p>
+  <p class="prose">四つのモデルは、それぞれ異なる問いに答えています。Model 1は「単純なルールから秩序が生まれうるか」を問い、Model 2は「その秩序はどの条件下で壊れるか」を検証し、Model 3は「秩序を生むネットワーク自体がどう進化したか」を説明し、Model 4は「寺院と儀礼がなければこの秩序はどう変わるか」を直接比較しました。</p>
 
-  <p class="prose">これらを総合すると、スバックシステムの堅牢性は三つの要因の組み合わせに由来することがわかります。第一に、局所的な学習ルール（隣人の成功を観察し模倣する）が全体最適を創発させる。第二に、水寺院の階層構造が異なるスケールの問題を適切に分離する。第三に、ネットワーク自体が環境への適応を通じて有機的に成長することで、人口変動や気候変動に対する耐性を維持する。</p>
+  <p class="prose">これらを総合すると、スバックシステムの堅牢性は四つの要因の組み合わせに由来することがわかります。第一に、局所的な学習ルール（隣人の成功を観察し模倣する）が全体最適を創発させる。第二に、水寺院の階層構造が異なるスケールの問題を適切に分離する。第三に、ネットワーク自体が環境への適応を通じて有機的に成長する。そして第四に、儀礼が定期的な情報共有の場として機能し、自己組織化の速度と質を劇的に向上させる。Model 4が示したように、寺院なしの世界では自己組織化は可能だが遅く不完全であり、寺院の階層構造があってはじめて、複雑な共有資源の管理が最適に近い水準で達成されます。</p>
 
   <div class="insight">
     <div class="insight-title">現代への示唆</div>
@@ -444,7 +589,7 @@ canvas { width:100%; height:200px; background:var(--card); border-radius:8px; bo
   </div>
 </div>
 
-<div class="footer">Subak Simulation v3.0 — Three models reimplemented 2026</div>
+<div class="footer">Subak Simulation v4.0 — Four models reimplemented 2026</div>
 
 </div><!-- /container -->
 
@@ -740,9 +885,136 @@ const m3 = {
   }
 };
 
+// =============== MODEL 4 ===============
+const m4 = {
+  scenarios: SIM.model4.scenarios, tinfo: SIM.model4.temple_info,
+  currentScenario: 'no_temple', step: 0, playing: false, iv: null,
+  scenarioNames: {no_temple:'寺院なし',local_temple:'地方寺院',hierarchy:'三層階層',green_rev:'緑の革命',restored:'寺院の復活'},
+  scenarioColors: {no_temple:'#966D5E',local_temple:'#CEA26F',hierarchy:'#783c28',green_rev:'#DC8766',restored:'#F0A671'},
+  init() {
+    document.getElementById('m4-stats').innerHTML = statsHTML([['m4-y','平均収量(t/ha)'],['m4-p','害虫被害'],['m4-w','水ストレス'],['m4-s','同期度'],['m4-sc','シナリオ']]);
+    buildCells('m4-phase',12); buildCells('m4-yield',12);
+    // Add temple border styling
+    const tmap = this.tinfo.temple_map;
+    for(let r=0;r<12;r++) for(let c=0;c<12;c++){
+      const i=r*12+c;
+      let borders = [];
+      if(r>0 && tmap[r][c]!==tmap[r-1][c]) borders.push('border-top:2px solid rgba(120,60,40,0.3)');
+      if(r<11 && tmap[r][c]!==tmap[r+1][c]) borders.push('border-bottom:2px solid rgba(120,60,40,0.3)');
+      if(c>0 && tmap[r][c]!==tmap[r][c-1]) borders.push('border-left:2px solid rgba(120,60,40,0.3)');
+      if(c<11 && tmap[r][c]!==tmap[r][c+1]) borders.push('border-right:2px solid rgba(120,60,40,0.3)');
+      if(borders.length){
+        const el=document.getElementById('m4-phase-'+i);
+        el.style.cssText+=';'+borders.join(';');
+        const yl=document.getElementById('m4-yield-'+i);
+        yl.style.cssText+=';'+borders.join(';');
+      }
+    }
+    this.render(0);
+    this.drawComparison();
+  },
+  get data(){ return this.scenarios[this.currentScenario]; },
+  switchScenario(name) {
+    this.currentScenario = name;
+    document.querySelectorAll('#m4-tabs .tab-btn').forEach((b,i) => {
+      const keys = Object.keys(this.scenarios);
+      b.classList.toggle('active', keys[i]===name);
+    });
+    if(this.playing) this.toggle();
+    this.render(0);
+    document.getElementById('m4-slider').value=0;
+  },
+  render(s) {
+    this.step=s; const d=this.data[s];
+    document.getElementById('m4-step').textContent=`第${s}年`;
+    document.getElementById('m4-slider').value=s;
+    document.getElementById('m4-y').textContent=d.avg_yield.toFixed(2);
+    document.getElementById('m4-p').textContent=(d.avg_pest*100).toFixed(1)+'%';
+    document.getElementById('m4-w').textContent=(d.avg_water*100).toFixed(1)+'%';
+    document.getElementById('m4-s').textContent=(d.synchrony*100).toFixed(0)+'%';
+    document.getElementById('m4-sc').textContent=this.scenarioNames[this.currentScenario];
+    for(let r=0;r<12;r++) for(let c=0;c<12;c++){
+      const i=r*12+c; const ph=d.phases[r][c]; const yl=d.yields[r][c];
+      const ce=document.getElementById('m4-phase-'+i);
+      ce.style.backgroundColor=PC[ph]; ce.querySelector('.tooltip').textContent=`(${r},${c}) ${PN[ph]} ${yl}t/ha`;
+      const ye=document.getElementById('m4-yield-'+i);
+      ye.style.backgroundColor=yieldColor(yl); ye.querySelector('.tooltip').textContent=`(${r},${c}) ${yl}t/ha`;
+    }
+    this.drawComparison();
+  },
+  drawComparison() {
+    // 5-line yield comparison
+    const cv=document.getElementById('m4-compare');const ctx=cv.getContext('2d');
+    const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=cv.offsetHeight*dpr;
+    ctx.scale(dpr,dpr);
+    const w=cv.offsetWidth,h=cv.offsetHeight;
+    const p={t:20,r:20,b:30,l:50};const pw=w-p.l-p.r,ph2=h-p.t-p.b;
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='#ece5dd';ctx.lineWidth=1;ctx.font='11px system-ui';ctx.fillStyle='#b0a090';ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=YMAX*i/4;const yy=p.t+ph2-(v/YMAX)*ph2;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();ctx.fillText(v.toFixed(1),p.l-6,yy+4);}
+    // Green rev zone
+    if(this.scenarios.restored){
+      const x20=p.l+(20/59)*pw;
+      ctx.fillStyle='#DC876615';
+      ctx.fillRect(p.l,p.t,x20-p.l,ph2);
+      ctx.fillStyle='#b0a090';ctx.font='10px system-ui';ctx.textAlign='center';
+      ctx.fillText('緑の革命期間',(p.l+x20)/2,p.t+12);
+      // Vertical line at restore point
+      ctx.strokeStyle='#DC876650';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(x20,p.t);ctx.lineTo(x20,p.t+ph2);ctx.stroke();ctx.setLineDash([]);
+    }
+    const keys=['no_temple','local_temple','hierarchy','green_rev','restored'];
+    for(const key of keys){
+      const rd=this.scenarios[key];if(!rd)continue;
+      const color=this.scenarioColors[key];
+      ctx.strokeStyle=color;ctx.lineWidth=key===this.currentScenario?3:1.5;
+      if(key!==this.currentScenario){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+      ctx.beginPath();
+      for(let i=0;i<rd.length;i++){const x=p.l+(i/(rd.length-1))*pw;const y=p.t+ph2-(rd[i].avg_yield/YMAX)*ph2;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      ctx.stroke();ctx.setLineDash([]);
+    }
+    // Current step marker
+    const cx2=p.l+(this.step/(this.data.length-1))*pw;
+    ctx.strokeStyle='#7A403360';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(cx2,p.t);ctx.lineTo(cx2,p.t+ph2);ctx.stroke();ctx.setLineDash([]);
+
+    // Pest comparison
+    this.drawMetricComparison('m4-pest-cmp','avg_pest',0.5);
+    this.drawMetricComparison('m4-water-cmp','avg_water',0.4);
+  },
+  drawMetricComparison(canvasId, field, maxVal) {
+    const cv=document.getElementById(canvasId);const ctx=cv.getContext('2d');
+    const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=cv.offsetHeight*dpr;
+    ctx.scale(dpr,dpr);
+    const w=cv.offsetWidth,h=cv.offsetHeight;
+    const p={t:16,r:16,b:24,l:50};const pw=w-p.l-p.r,ph2=h-p.t-p.b;
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='#ece5dd';ctx.lineWidth=1;ctx.font='10px system-ui';ctx.fillStyle='#b0a090';ctx.textAlign='right';
+    for(let i=0;i<=5;i++){const v=maxVal*i/5;const yy=p.t+ph2-(v/maxVal)*ph2;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();ctx.fillText((v*100).toFixed(0)+'%',p.l-4,yy+3);}
+    const keys=['no_temple','local_temple','hierarchy','green_rev','restored'];
+    for(const key of keys){
+      const rd=this.scenarios[key];if(!rd)continue;
+      ctx.strokeStyle=this.scenarioColors[key];ctx.lineWidth=key===this.currentScenario?2.5:1.2;
+      if(key!==this.currentScenario){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+      ctx.beginPath();
+      for(let i=0;i<rd.length;i++){const x=p.l+(i/(rd.length-1))*pw;const y=p.t+ph2-(rd[i][field]/maxVal)*ph2;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      ctx.stroke();ctx.setLineDash([]);
+    }
+    const cx2=p.l+(this.step/(this.data.length-1))*pw;
+    ctx.strokeStyle='#7A403360';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(cx2,p.t);ctx.lineTo(cx2,p.t+ph2);ctx.stroke();ctx.setLineDash([]);
+  },
+  go(s){this.render(s);}, reset(){if(this.playing)this.toggle();this.render(0);},
+  toggle(){
+    if(this.playing){clearInterval(this.iv);this.playing=false;document.getElementById('m4-play').textContent='再生';document.getElementById('m4-play').classList.remove('active');}
+    else{this.playing=true;document.getElementById('m4-play').textContent='一時停止';document.getElementById('m4-play').classList.add('active');
+      this.iv=setInterval(()=>{if(this.step>=this.data.length-1){this.toggle();return;}this.render(this.step+1);},400);}
+  }
+};
+
 // Init all
-m1.init(); m2.init(); m3.init();
-window.addEventListener('resize',()=>{m1.render(m1.step);m2.render(m2.step);m3.render(m3.step);});
+m1.init(); m2.init(); m3.init(); m4.init();
+window.addEventListener('resize',()=>{m1.render(m1.step);m2.render(m2.step);m3.render(m3.step);m4.render(m4.step);});
 </script>
 </body>
 </html>
